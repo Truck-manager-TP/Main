@@ -10,7 +10,8 @@ board in sync with reality with zero manual status changes.
 | Commit `TPT-142 #comment ...`          | Comment mirrored onto the story (smart commit)   |
 | PR opened referencing `TPT-142`        | Story -> **In Review**                           |
 | SonarQube quality gate **passed**      | Adds `sonar:passed` label                         |
-| SonarQube quality gate **failed**      | Story -> **Blocked**, flags the PR               |
+| SonarQube quality gate **failed** (Grafana alert) | Auto-creates **Bug** with label `sonarqube`      |
+| SonarQube quality gate **failed** (CI)            | Story -> **Blocked**, flags the PR               |
 | Digital.ai Release deploys to UAT      | Story -> **In UAT**                              |
 | ServiceNow PROD change **Closed OK**   | Story -> **Done**, `released/1.0.0` fix version  |
 | Grafana raises P1 -> ServiceNow inc.   | Auto-creates linked **Bug** in the same epic     |

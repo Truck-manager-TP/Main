@@ -1,0 +1,135 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: sonarqube-quality
+    folder: TP-Truck
+    interval: 1m
+    rules:
+      - uid: tptruck-sonar-qg-failed
+        title: SonarQubeQualityGateFailed
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              editorMode: code
+              expr: sonarqube_quality_gate_status{project="tptruck-fleet"}
+              instant: true
+              intervalMs: 1000
+              legendFormat: __auto
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: eq
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              refId: C
+              type: threshold
+        noDataState: OK
+        execErrState: Error
+        for: 0s
+        annotations:
+          summary: SonarQube quality gate FAILED for tptruck-fleet
+          description: TP-Truck Gate failed. Review SonarQube dashboard. CI/release is blocked.
+          dashboard_url: http://sonarqube:9000/dashboard?id=tptruck-fleet
+        labels:
+          severity: critical
+          source: sonarqube
+          jira: "true"
+          project: tptruck-fleet
+
+      - uid: tptruck-sonar-critical-bugs
+        title: SonarQubeCriticalBugs
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              editorMode: code
+              expr: sonarqube_bugs{project="tptruck-fleet",severity="critical"}
+              instant: true
+              intervalMs: 1000
+              legendFormat: __auto
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              refId: C
+              type: threshold
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: Critical bugs detected in tptruck-fleet
+          description: One or more critical bugs are open in SonarQube.
+          dashboard_url: http://sonarqube:9000/project/issues?id=tptruck-fleet&types=BUG&severities=CRITICAL
+        labels:
+          severity: critical
+          source: sonarqube
+          jira: "true"
+          project: tptruck-fleet

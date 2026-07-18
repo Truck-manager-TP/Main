@@ -105,6 +105,36 @@ services:
     networks: [tptruck-net]
     restart: unless-stopped
 
+  # ---- SonarQube -> Prometheus metrics bridge ------------------------------
+  sonarqube-exporter:
+    build:
+      context: ./docker/sonarqube-exporter
+    image: tptruck/sonarqube-exporter:1.0.0
+    environment:
+      SONAR_HOST: http://sonarqube:9000
+      SONAR_TOKEN: ${SONAR_TOKEN:-}
+      SONAR_PROJECT_KEY: tptruck-fleet
+      SCRAPE_INTERVAL_SECONDS: 60
+      EXPORTER_PORT: 8190
+    depends_on: [sonarqube]
+    networks: [tptruck-net]
+    restart: unless-stopped
+
+  # ---- Grafana alert -> Jira Bug bridge (SonarQube incidents) --------------
+  jira-bridge:
+    build:
+      context: ./docker/jira-bridge
+    image: tptruck/jira-bridge:1.0.0
+    environment:
+      JIRA_BASE_URL: ${JIRA_BASE_URL:-https://example.atlassian.net}
+      JIRA_EMAIL: ${JIRA_EMAIL:-}
+      JIRA_API_TOKEN: ${JIRA_API_TOKEN:-}
+      JIRA_PROJECT_KEY: ${JIRA_PROJECT_KEY:-TPT}
+      JIRA_ISSUE_TYPE: ${JIRA_ISSUE_TYPE:-Bug}
+      DEDUP_ENABLED: "true"
+    networks: [tptruck-net]
+    restart: unless-stopped
+
   # ---- Metrics -------------------------------------------------------------
   prometheus:
     build:
@@ -114,7 +144,7 @@ services:
       APP_ENV: ${APP_ENV:-dev}
     volumes:
       - prometheus-data:/prometheus
-    depends_on: [app]
+    depends_on: [app, sonarqube-exporter]
     networks: [tptruck-net]
     restart: unless-stopped
 
@@ -125,9 +155,10 @@ services:
     image: tptruck/grafana:1.0.0
     environment:
       SERVICENOW_WEBHOOK_URL: ${SERVICENOW_WEBHOOK_URL:-http://localhost/mock-servicenow}
+      JIRA_BRIDGE_URL: ${JIRA_BRIDGE_URL:-http://jira-bridge:8090/webhooks/grafana}
     volumes:
       - grafana-data:/var/lib/grafana
-    depends_on: [prometheus]
+    depends_on: [prometheus, jira-bridge]
     networks: [tptruck-net]
     restart: unless-stopped
 

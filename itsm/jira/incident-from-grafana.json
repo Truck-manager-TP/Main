@@ -1,0 +1,27 @@
+{
+  "_comment": "Grafana SonarQube alerts POST to jira-bridge (/webhooks/grafana), which creates a Bug in Jira via /rest/api/2/issue.",
+  "fields": {
+    "project": {
+      "key": "TPT"
+    },
+    "issuetype": {
+      "name": "Bug"
+    },
+    "summary": "[Grafana/SonarQube] {{ .CommonLabels.alertname }} — {{ .CommonLabels.project }}",
+    "description": "h2. Observability Alert — SonarQube\n\n*Alert:* {{ .CommonLabels.alertname }}\n*Project:* {{ .CommonLabels.project }}\n*Severity:* {{ .CommonLabels.severity }}\n\nh3. Summary\n{{ .CommonAnnotations.summary }}\n\nh3. Details\n{{ .CommonAnnotations.description }}\n\n*SonarQube dashboard:* {{ .CommonAnnotations.dashboard_url }}\n\n_Auto-created via Grafana → Jira bridge (Approach 2)._",
+    "priority": {
+      "name": "Highest"
+    },
+    "labels": [
+      "sonarqube",
+      "grafana-alert",
+      "quality-gate",
+      "auto-created"
+    ],
+    "components": [
+      {
+        "name": "Platform"
+      }
+    ]
+  }
+}
