@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTL Discovery - Administration</title>
+    <link rel="stylesheet" href="css/admin-style.css">
+</head>
+<body>
+    <!-- Admin Navigation -->
+    <header class="admin-navbar">
+        <div class="container">
+            <div class="navbar-brand">
+                <h1>PTL DISCOVERY - Admin</h1>
+            </div>
+            <nav class="navbar-menu">
+                <ul>
+                    <li><a href="#dashboard">Dashboard</a></li>
+                    <li><a href="#products">Produits</a></li>
+                    <li><a href="#users">Utilisateurs</a></li>
+                    <li><a href="#audit">Audit</a></li>
+                    <li><button onclick="logout()" class="btn-logout">Déconnexion</button></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Dashboard -->
+    <section id="dashboard" class="admin-section">
+        <div class="container">
+            <h2>Tableau de Bord</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Produits Actifs</h3>
+                    <p class="stat-value" id="activeProducts">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Capacités</h3>
+                    <p class="stat-value" id="totalCapacities">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Utilisateurs Admin</h3>
+                    <p class="stat-value" id="totalAdmins">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Logs d'Audit</h3>
+                    <p class="stat-value" id="totalLogs">0</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Products Management -->
+    <section id="products" class="admin-section">
+        <div class="container">
+            <h2>Gestion des Produits</h2>
+            <button class="btn-primary" onclick="openAddProductModal()">Ajouter un Produit</button>
+            <div class="table-responsive">
+                <table id="productsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nom</th>
+                            <th>Catégorie</th>
+                            <th>Prix</th>
+                            <th>Stock</th>
+                            <th>Actif</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Users Management -->
+    <section id="users" class="admin-section">
+        <div class="container">
+            <h2>Gestion des Utilisateurs</h2>
+            <button class="btn-primary" onclick="openAddUserModal()">Ajouter un Utilisateur</button>
+            <div class="table-responsive">
+                <table id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Rôle</th>
+                            <th>Actif</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Audit Logs -->
+    <section id="audit" class="admin-section">
+        <div class="container">
+            <h2>Logs d'Audit</h2>
+            <div class="audit-filters">
+                <input type="text" id="auditUsername" placeholder="Filtrer par utilisateur">
+                <select id="auditAction">
+                    <option value="">Tous les actions</option>
+                    <option value="CREATE">CREATE</option>
+                    <option value="UPDATE">UPDATE</option>
+                    <option value="DELETE">DELETE</option>
+                </select>
+                <button onclick="filterAuditLogs()" class="btn-primary">Filtrer</button>
+            </div>
+            <div class="table-responsive">
+                <table id="auditTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Utilisateur</th>
+                            <th>Action</th>
+                            <th>Type d'Entité</th>
+                            <th>ID Entité</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Product Modal -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeProductModal()">&times;</span>
+            <h2>Ajouter/Modifier Produit</h2>
+            <form id="productForm">
+                <div class="form-group">
+                    <label for="productName">Nom:</label>
+                    <input type="text" id="productName" required>
+                </div>
+                <div class="form-group">
+                    <label for="productDescription">Description:</label>
+                    <textarea id="productDescription"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="productCategory">Catégorie:</label>
+                    <input type="text" id="productCategory" required>
+                </div>
+                <div class="form-group">
+                    <label for="productPrice">Prix:</label>
+                    <input type="number" id="productPrice" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="productStock">Stock:</label>
+                    <input type="number" id="productStock" required>
+                </div>
+                <div class="form-group">
+                    <label for="productSku">SKU:</label>
+                    <input type="text" id="productSku" required>
+                </div>
+                <button type="submit" class="btn-primary">Enregistrer</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- User Modal -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeUserModal()">&times;</span>
+            <h2>Ajouter/Modifier Utilisateur</h2>
+            <form id="userForm">
+                <div class="form-group">
+                    <label for="userName">Username:</label>
+                    <input type="text" id="userName" required>
+                </div>
+                <div class="form-group">
+                    <label for="userPassword">Mot de passe:</label>
+                    <input type="password" id="userPassword" required>
+                </div>
+                <div class="form-group">
+                    <label for="userEmail">Email:</label>
+                    <input type="email" id="userEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="userFirstName">Prénom:</label>
+                    <input type="text" id="userFirstName" required>
+                </div>
+                <div class="form-group">
+                    <label for="userLastName">Nom:</label>
+                    <input type="text" id="userLastName" required>
+                </div>
+                <div class="form-group">
+                    <label for="userRole">Rôle:</label>
+                    <select id="userRole" required>
+                        <option value="USER">USER</option>
+                        <option value="MANAGER">MANAGER</option>
+                        <option value="ADMIN">ADMIN</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary">Enregistrer</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/admin.js"></script>
+</body>
+</html>

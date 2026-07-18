@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # Dedicated SonarQube image (Community) for static analysis & quality gates.
-FROM sonarqube:10.5-community
+FROM docker.io/library/sonarqube:10.5-community
 
 LABEL org.opencontainers.image.title="tptruck-sonarqube" \
       org.opencontainers.image.description="Static code analysis & quality gate enforcement"

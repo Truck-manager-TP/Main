@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # Dedicated Grafana image with datasources & dashboards provisioned as code.
-FROM grafana/grafana:11.1.0
+FROM docker.io/grafana/grafana:11.1.0
 
 LABEL org.opencontainers.image.title="tptruck-grafana" \
       org.opencontainers.image.description="Observability dashboards for the fleet platform"
