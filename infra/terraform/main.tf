@@ -63,6 +63,31 @@ resource "docker_container" "postgres" {
   restart = "unless-stopped"
 }
 
+# ---- Redis (live map position cache) ----------------------------------------
+resource "docker_volume" "redisdata" {
+  name = "${local.name_prefix}-redisdata"
+}
+
+resource "docker_image" "redis" {
+  name = "redis:7-alpine"
+}
+
+resource "docker_container" "redis" {
+  name  = "${local.name_prefix}-redis"
+  image = docker_image.redis.image_id
+
+  networks_advanced {
+    name = docker_network.tptruck.name
+  }
+
+  volumes {
+    volume_name    = docker_volume.redisdata.name
+    container_path = "/data"
+  }
+
+  restart = "unless-stopped"
+}
+
 # ---- Application ------------------------------------------------------------
 resource "docker_image" "app" {
   name = var.app_image
@@ -78,6 +103,8 @@ resource "docker_container" "app" {
     "DB_URL=jdbc:postgresql://${docker_container.postgres.name}:5432/${var.db_name}",
     "DB_USER=${var.db_user}",
     "DB_PASSWORD=${var.db_password}",
+    "REDIS_HOST=${docker_container.redis.name}",
+    "REDIS_PORT=6379",
   ]
 
   networks_advanced {

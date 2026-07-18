@@ -1,5 +1,7 @@
 package com.tptruck.fleet.route;
 
+import com.tptruck.fleet.map.PositionIngestRequest;
+import com.tptruck.fleet.map.TrackingService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -12,9 +14,11 @@ import java.util.NoSuchElementException;
 public class RouteController {
 
     private final RouteRepository routeRepository;
+    private final TrackingService trackingService;
 
-    public RouteController(RouteRepository routeRepository) {
+    public RouteController(RouteRepository routeRepository, TrackingService trackingService) {
         this.routeRepository = routeRepository;
+        this.trackingService = trackingService;
     }
 
     @GetMapping
@@ -42,10 +46,9 @@ public class RouteController {
     @PostMapping("/{id}/position")
     public Route updatePosition(@PathVariable Long id,
                                 @RequestParam double lat,
-                                @RequestParam double lng) {
-        Route route = get(id);
-        route.updatePosition(lat, lng);
-        route.setStatus(RouteStatus.IN_TRANSIT);
-        return routeRepository.save(route);
+                                @RequestParam double lng,
+                                @RequestParam(required = false) Double speedKmh,
+                                @RequestParam(required = false) Short headingDeg) {
+        return trackingService.ingestPosition(id, new PositionIngestRequest(lat, lng, speedKmh, headingDeg));
     }
 }

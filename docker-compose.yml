@@ -15,6 +15,7 @@ networks:
 
 volumes:
   pg-data:
+  redis-data:
   sonarqube-data:
   sonarqube-extensions:
   sonarqube-logs:
@@ -53,6 +54,19 @@ services:
     networks: [tptruck-net]
     restart: on-failure
 
+  # ---- Real-time position cache (map tracking) -----------------------------
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis-data:/data
+    networks: [tptruck-net]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
   # ---- Application ---------------------------------------------------------
   app:
     build:
@@ -63,11 +77,17 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-tptruck}
       DB_USER: ${DB_USER:-tptruck}
       DB_PASSWORD: ${DB_PASSWORD:-tptruck}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin}
     depends_on:
       postgres:
         condition: service_healthy
       flyway:
         condition: service_completed_successfully
+      redis:
+        condition: service_healthy
     networks: [tptruck-net]
     restart: unless-stopped
 

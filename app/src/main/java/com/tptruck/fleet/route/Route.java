@@ -50,6 +50,24 @@ public class Route {
     @Column(name = "last_known_lng")
     private Double lastKnownLng;
 
+    @Column(name = "origin_lat")
+    private Double originLat;
+
+    @Column(name = "origin_lng")
+    private Double originLng;
+
+    @Column(name = "destination_lat")
+    private Double destinationLat;
+
+    @Column(name = "destination_lng")
+    private Double destinationLng;
+
+    @Column(name = "started_at")
+    private Instant startedAt;
+
+    @Column(name = "completed_at")
+    private Instant completedAt;
+
     @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
 
@@ -137,9 +155,41 @@ public class Route {
         return updatedAt;
     }
 
+    public Double getOriginLat() {
+        return originLat;
+    }
+
+    public Double getOriginLng() {
+        return originLng;
+    }
+
+    public Double getDestinationLat() {
+        return destinationLat;
+    }
+
+    public Double getDestinationLng() {
+        return destinationLng;
+    }
+
+    public Instant getStartedAt() {
+        return startedAt;
+    }
+
+    public Instant getCompletedAt() {
+        return completedAt;
+    }
+
     public void updatePosition(double lat, double lng) {
         this.lastKnownLat = lat;
         this.lastKnownLng = lng;
+        this.updatedAt = Instant.now();
+    }
+
+    public void markInTransit() {
+        if (this.status == RouteStatus.PLANNED) {
+            this.startedAt = Instant.now();
+        }
+        this.status = RouteStatus.IN_TRANSIT;
         this.updatedAt = Instant.now();
     }
 }

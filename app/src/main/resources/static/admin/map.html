@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TP-Truck | Admin Live Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="/admin/map.css"/>
+</head>
+<body>
+  <header>
+    <h1>TP-Truck — Global Fleet Map</h1>
+    <p id="status">Connecting…</p>
+  </header>
+  <div id="login-panel" class="login-panel">
+    <h2>Admin sign in</h2>
+    <label>Username <input id="username" type="text" value="admin"/></label>
+    <label>Password <input id="password" type="password" value="admin"/></label>
+    <button id="login-btn" type="button">Open map</button>
+  </div>
+  <div id="map"></div>
+  <aside id="sidebar">
+    <h3>Active routes</h3>
+    <ul id="route-list"></ul>
+    <h3>Relay points</h3>
+    <ul id="relay-list"></ul>
+  </aside>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+  <script src="/admin/map.js"></script>
+</body>
+</html>

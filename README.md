@@ -38,6 +38,7 @@ docs/DEVOPS_LIFECYCLE.md Full Plan→Build→Test→Integrate→Deploy→Operate
 cp .env.example .env
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 # App:        http://localhost:8080/swagger-ui.html
+# Admin map:  http://localhost:8080/admin/map.html  (admin/admin)
 # Grafana:    http://localhost:3000  (admin/admin)
 # SonarQube:  http://localhost:9000
 # Prometheus: http://localhost:9090
