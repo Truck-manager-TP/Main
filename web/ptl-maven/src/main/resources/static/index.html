@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PTL — Le contrôle total de vos flux logistiques</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<header class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="#" class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <circle cx="11" cy="11" r="9" stroke="currentColor" stroke-width="2"/>
+          <path d="M4 11h14M11 4c2.5 2.2 2.5 11.8 0 14M11 4c-2.5 2.2-2.5 11.8 0 14" stroke="currentColor" stroke-width="1.4"/>
+        </svg>
+      </span>
+      PTL
+    </a>
+
+    <nav class="nav-links" id="navLinks">
+      <a href="#produits">Produits</a>
+      <a href="#capacites">Capacités</a>
+      <a href="#comment">Comment ça marche</a>
+      <a href="#secteurs">Secteurs</a>
+      <a href="#tarifs">Tarifs</a>
+    </nav>
+
+    <div class="nav-cta">
+      <a href="#inscription" class="btn btn-ghost">Se connecter</a>
+      <a href="#inscription" class="btn btn-primary">S'inscrire</a>
+    </div>
+
+    <button class="nav-toggle" id="navToggle" aria-label="Ouvrir le menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow">Plateforme de gestion du transport &amp; de la logistique</p>
+    <h1 class="hero-title">
+      Le contrôle total de vos flux,<br>
+      <em>sans la complexité</em> d'un ERP.
+    </h1>
+    <p class="hero-sub">
+      PTL réunit suivi de flotte, planification des tournées et gestion documentaire
+      dans un seul cockpit — pensé pour les transporteurs, chargeurs et opérateurs logistiques
+      qui veulent voir venir, pas subir.
+    </p>
+    <div class="hero-actions">
+      <a href="#inscription" class="btn btn-primary btn-lg">S'inscrire</a>
+      <a href="#capacites" class="btn btn-outline btn-lg">Voir les capacités</a>
+    </div>
+  </div>
+
+  <!-- Signature element: animated route diagram -->
+  <div class="route-board" role="img" aria-label="Trajet type d'une expédition suivie par PTL, de l'enlèvement à la livraison">
+    <svg viewBox="0 0 1200 220" preserveAspectRatio="none" class="route-svg">
+      <path id="routePath" d="M 40 170 C 220 60, 380 200, 560 90 S 900 40, 1160 120"
+            fill="none" stroke="rgba(246,245,241,0.16)" stroke-width="2"/>
+      <path d="M 40 170 C 220 60, 380 200, 560 90 S 900 40, 1160 120"
+            fill="none" stroke="#FF6B35" stroke-width="2" stroke-dasharray="10 14" class="route-dash"/>
+    </svg>
+    <div class="waypoint" style="left:3%; top:75%;"><span class="wp-dot"></span><span class="wp-label">Enlèvement</span></div>
+    <div class="waypoint" style="left:29%; top:26%;"><span class="wp-dot"></span><span class="wp-label">Transit&nbsp;— suivi live</span></div>
+    <div class="waypoint" style="left:47%; top:89%;"><span class="wp-dot"></span><span class="wp-label">Douane &amp; documents</span></div>
+    <div class="waypoint" style="left:75%; top:18%;"><span class="wp-dot"></span><span class="wp-label">Optimisation IA</span></div>
+    <div class="waypoint" style="left:96%; top:52%;"><span class="wp-dot wp-dot--end"></span><span class="wp-label">Livraison confirmée</span></div>
+  </div>
+</section>
+
+<!-- ============ STATS / MANIFEST STRIP ============ -->
+<section class="manifest">
+  <div class="manifest-inner">
+    <div class="manifest-item">
+      <p class="manifest-num">↑ 98%</p>
+      <p class="manifest-label">livraisons à l'heure<br><span>avec le suivi temps réel PTL</span></p>
+    </div>
+    <div class="manifest-item">
+      <p class="manifest-num">↓ 40%</p>
+      <p class="manifest-label">temps de planification<br><span>grâce à l'optimisation des tournées</span></p>
+    </div>
+    <div class="manifest-item">
+      <p class="manifest-num">↑ 3 200</p>
+      <p class="manifest-label">véhicules suivis<br><span>sur l'ensemble du réseau PTL</span></p>
+    </div>
+    <div class="manifest-item">
+      <p class="manifest-num">↓ 25%</p>
+      <p class="manifest-label">coûts logistiques<br><span>avec le module de consolidation</span></p>
+    </div>
+    <div class="manifest-item">
+      <p class="manifest-num">150+</p>
+      <p class="manifest-label">entreprises clientes<br><span>transport, retail, agro, BTP</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PRODUITS ============ -->
+<section class="section" id="produits">
+  <div class="section-head">
+    <p class="kicker">Produit</p>
+    <h2>Un cockpit, quatre modules qui parlent entre eux</h2>
+    <p class="section-sub">Chaque module fonctionne seul ou combiné — les données circulent sans double saisie.</p>
+  </div>
+
+  <div class="ticket-grid">
+    <article class="ticket">
+      <p class="ticket-code">MOD·01</p>
+      <h3>Suivi de flotte</h3>
+      <p>Position en temps réel, historique de trajet et état des véhicules, consultables depuis un seul écran.</p>
+      <ul class="ticket-list">
+        <li>Géolocalisation continue</li>
+        <li>Alertes d'écart d'itinéraire</li>
+        <li>Historique exportable</li>
+      </ul>
+    </article>
+
+    <article class="ticket">
+      <p class="ticket-code">MOD·02</p>
+      <h3>Gestion des expéditions</h3>
+      <p>De la commande à la preuve de livraison, chaque expédition garde un fil documentaire complet.</p>
+      <ul class="ticket-list">
+        <li>Bons de transport numériques</li>
+        <li>Preuve de livraison signée</li>
+        <li>Statuts partagés client</li>
+      </ul>
+    </article>
+
+    <article class="ticket">
+      <p class="ticket-code">MOD·03</p>
+      <h3>Optimisation des tournées</h3>
+      <p>Le moteur de planification recompose les tournées selon trafic, capacité et fenêtres de livraison.</p>
+      <ul class="ticket-list">
+        <li>Recalcul automatique</li>
+        <li>Contraintes de capacité</li>
+        <li>Regroupement d'expéditions</li>
+      </ul>
+    </article>
+
+    <article class="ticket">
+      <p class="ticket-code">MOD·04</p>
+      <h3>Documents &amp; douane</h3>
+      <p>Centralise les pièces réglementaires et suit leur validité pour éviter les blocages en frontière.</p>
+      <ul class="ticket-list">
+        <li>Coffre-fort documentaire</li>
+        <li>Alertes d'expiration</li>
+        <li>Modèles conformes Maroc/UE</li>
+      </ul>
+    </article>
+  </div>
+</section>
+
+<!-- ============ CAPACITÉS ============ -->
+<section class="section section--muted" id="capacites">
+  <div class="section-head">
+    <p class="kicker">Capacités</p>
+    <h2>Ce que PTL fait tourner en arrière-plan</h2>
+    <p class="section-sub">Les fondations techniques qui rendent le pilotage possible, pas seulement visible.</p>
+  </div>
+
+  <div class="capa-grid">
+    <div class="capa">
+      <span class="capa-icon" aria-hidden="true">◎</span>
+      <h3>Suivi temps réel</h3>
+      <p>Positions et statuts mis à jour en continu, sans rafraîchissement manuel.</p>
+    </div>
+    <div class="capa">
+      <span class="capa-icon" aria-hidden="true">◈</span>
+      <h3>IA prédictive</h3>
+      <p>Anticipe les retards probables et propose un replanning avant qu'ils n'arrivent.</p>
+    </div>
+    <div class="capa">
+      <span class="capa-icon" aria-hidden="true">⇄</span>
+      <h3>Intégrations</h3>
+      <p>Connecteurs vers vos outils comptables, ERP et plateformes e-commerce existants.</p>
+    </div>
+    <div class="capa">
+      <span class="capa-icon" aria-hidden="true">▤</span>
+      <h3>Tableaux de bord</h3>
+      <p>Indicateurs configurables par rôle : direction, exploitation, client final.</p>
+    </div>
+    <div class="capa">
+      <span class="capa-icon" aria-hidden="true">⚠</span>
+      <h3>Alertes automatiques</h3>
+      <p>Écarts d'itinéraire, retards, documents expirés — notifiés au bon interlocuteur.</p>
+    </div>
+    <div class="capa">
+      <span class="capa-icon" aria-hidden="true">⬡</span>
+      <h3>Multi-sites</h3>
+      <p>Plusieurs dépôts, plusieurs équipes, une seule vue consolidée pour la direction.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ COMMENT ÇA MARCHE ============ -->
+<section class="section" id="comment">
+  <div class="section-head">
+    <p class="kicker">Parcours</p>
+    <h2>De l'enlèvement à la livraison, sans zone d'ombre</h2>
+  </div>
+
+  <ol class="process">
+    <li>
+      <span class="process-num">01</span>
+      <h3>Enlèvement</h3>
+      <p>La commande est créée et affectée à un véhicule disponible selon capacité et zone.</p>
+    </li>
+    <li>
+      <span class="process-num">02</span>
+      <h3>Suivi en transit</h3>
+      <p>Position, statut et documents de bord sont visibles en direct par toutes les parties.</p>
+    </li>
+    <li>
+      <span class="process-num">03</span>
+      <h3>Optimisation continue</h3>
+      <p>En cas d'aléa, le moteur propose un nouvel itinéraire ou un nouveau créneau.</p>
+    </li>
+    <li>
+      <span class="process-num">04</span>
+      <h3>Livraison &amp; preuve</h3>
+      <p>Signature, horodatage et clôture automatique du dossier, archivé et consultable.</p>
+    </li>
+  </ol>
+</section>
+
+<!-- ============ SECTEURS ============ -->
+<section class="section section--muted" id="secteurs">
+  <div class="section-head">
+    <p class="kicker">Secteurs</p>
+    <h2>Conçu pour des flux qui ne se ressemblent pas</h2>
+  </div>
+
+  <div class="tag-grid">
+    <div class="tag-card">Agroalimentaire &amp; froid</div>
+    <div class="tag-card">BTP &amp; matériaux</div>
+    <div class="tag-card">Retail &amp; distribution</div>
+    <div class="tag-card">Import / Export</div>
+    <div class="tag-card">Ports &amp; douanes</div>
+    <div class="tag-card">3PL &amp; affrètement</div>
+  </div>
+</section>
+
+<!-- ============ TARIFS ============ -->
+<section class="section section--muted" id="tarifs">
+  <div class="section-head">
+    <p class="kicker">Tarifs</p>
+    <h2>Tarification au kilo expédié</h2>
+    <p class="section-sub">Payez uniquement le poids que vous transportez. Plus votre volume augmente, plus le tarif au kg diminue.</p>
+  </div>
+
+  <div class="pricing-toolbar">
+    <div class="pricing-toggle" role="group" aria-label="Type de tarif au kg">
+      <button type="button" class="pricing-toggle-btn is-active" data-billing="monthly">Standard</button>
+      <button type="button" class="pricing-toggle-btn" data-billing="annual">
+        Contrat annuel
+        <span class="pricing-save">−15&nbsp;%</span>
+      </button>
+      <span class="pricing-toggle-pill" aria-hidden="true"></span>
+    </div>
+    <p class="pricing-toolbar-hint">Tous les montants sont exprimés en DH / kg HT · Plan Pro recommandé dès 2 t/mois</p>
+  </div>
+
+  <div class="pricing-bento">
+    <article class="plan plan--starter">
+      <header class="plan-head">
+        <p class="plan-code">TARIF·A</p>
+        <h3>Essentiel</h3>
+        <p class="plan-tagline">Artisans &amp; petites flottes locales</p>
+      </header>
+
+      <div class="plan-price" data-monthly="2.20" data-annual="1.87">
+        <span class="plan-amount">2,20</span>
+        <span class="plan-currency">DH</span>
+        <span class="plan-period">/ kg HT</span>
+      </div>
+      <p class="plan-note">Tarif standard au kg expédié</p>
+      <p class="plan-unit">Volume min. 300 kg / mois</p>
+
+      <dl class="plan-metrics">
+        <div><dt>Volume min.</dt><dd>300 kg</dd></div>
+        <div><dt>Utilisateurs</dt><dd>5</dd></div>
+        <div><dt>Modules</dt><dd>2 / 4</dd></div>
+      </dl>
+
+      <div class="plan-modules">
+        <span class="plan-mod plan-mod--on">MOD·01 Flotte</span>
+        <span class="plan-mod plan-mod--on">MOD·02 Expéditions</span>
+        <span class="plan-mod">MOD·03 Tournées</span>
+        <span class="plan-mod">MOD·04 Documents</span>
+      </div>
+
+      <ul class="plan-features">
+        <li>Géolocalisation &amp; alertes d'itinéraire</li>
+        <li>Bons de transport numériques</li>
+        <li>Tableaux de bord exploitation</li>
+        <li>Support e-mail sous 48 h</li>
+      </ul>
+
+      <a href="#inscription" class="btn btn-outline plan-cta">Démarrer</a>
+    </article>
+
+    <article class="plan plan--pro">
+      <p class="plan-ribbon">Recommandé</p>
+      <header class="plan-head">
+        <p class="plan-code">TARIF·B</p>
+        <h3>Pro</h3>
+        <p class="plan-tagline">Transporteurs en croissance &amp; multi-sites</p>
+      </header>
+
+      <div class="plan-price" data-monthly="1.65" data-annual="1.40">
+        <span class="plan-amount">1,65</span>
+        <span class="plan-currency">DH</span>
+        <span class="plan-period">/ kg HT</span>
+      </div>
+      <p class="plan-note">Tarif standard au kg expédié</p>
+      <p class="plan-unit">Volume min. 2 000 kg / mois · Meilleur rapport qualité / prix</p>
+
+      <dl class="plan-metrics">
+        <div><dt>Volume min.</dt><dd>2 t</dd></div>
+        <div><dt>Utilisateurs</dt><dd>20</dd></div>
+        <div><dt>Modules</dt><dd>4 / 4</dd></div>
+      </dl>
+
+      <div class="plan-modules">
+        <span class="plan-mod plan-mod--on">MOD·01 Flotte</span>
+        <span class="plan-mod plan-mod--on">MOD·02 Expéditions</span>
+        <span class="plan-mod plan-mod--on">MOD·03 Tournées</span>
+        <span class="plan-mod plan-mod--on">MOD·04 Documents</span>
+      </div>
+
+      <ul class="plan-features">
+        <li>Optimisation IA &amp; recalcul automatique</li>
+        <li>Coffre-fort douane Maroc / UE</li>
+        <li>Intégrations ERP &amp; comptabilité</li>
+        <li>Alertes avancées multi-canal</li>
+        <li>Support prioritaire sous 24 h</li>
+      </ul>
+
+      <a href="#inscription" class="btn btn-primary plan-cta">Essai gratuit 14 jours</a>
+    </article>
+
+    <article class="plan plan--enterprise">
+      <header class="plan-head">
+        <p class="plan-code">TARIF·C</p>
+        <h3>Entreprise</h3>
+        <p class="plan-tagline">Réseaux nationaux, 3PL &amp; grands volumes</p>
+      </header>
+
+      <div class="plan-price plan-price--custom" data-monthly="0.95" data-annual="0.81">
+        <span class="plan-from">à partir de</span>
+        <span class="plan-amount">0,95</span>
+        <span class="plan-currency">DH</span>
+        <span class="plan-period">/ kg HT</span>
+      </div>
+      <p class="plan-note">Tarif standard au kg expédié</p>
+      <p class="plan-unit">Volume négocié · Grands comptes &amp; 3PL</p>
+
+      <dl class="plan-metrics">
+        <div><dt>Volume min.</dt><dd>10 t+</dd></div>
+        <div><dt>Utilisateurs</dt><dd>Sur mesure</dd></div>
+        <div><dt>Modules</dt><dd>Tous + API</dd></div>
+      </dl>
+
+      <div class="plan-modules">
+        <span class="plan-mod plan-mod--on">Suite complète</span>
+        <span class="plan-mod plan-mod--on">API REST</span>
+        <span class="plan-mod plan-mod--on">SSO &amp; LDAP</span>
+        <span class="plan-mod plan-mod--on">SLA 99,9 %</span>
+      </div>
+
+      <ul class="plan-features">
+        <li>Account manager dédié</li>
+        <li>Formation sur site &amp; onboarding</li>
+        <li>Connecteurs sur mesure</li>
+        <li>Modèles douane personnalisés</li>
+        <li>Support 24/7 &amp; hotline</li>
+      </ul>
+
+      <a href="#inscription" class="btn btn-outline plan-cta">Parler à un expert</a>
+    </article>
+  </div>
+
+  <div class="pricing-matrix" aria-label="Comparatif des formules">
+    <div class="matrix-row matrix-row--head">
+      <span>Fonctionnalité</span>
+      <span>Essentiel</span>
+      <span>Pro</span>
+      <span>Entreprise</span>
+    </div>
+    <div class="matrix-row matrix-row--rates"><span>Tarif au kg (HT)</span><span>2,20 DH</span><span>1,65 DH</span><span>dès 0,95 DH</span></div>
+    <div class="matrix-row"><span>Suivi temps réel</span><span class="matrix-yes">✓</span><span class="matrix-yes">✓</span><span class="matrix-yes">✓</span></div>
+    <div class="matrix-row"><span>Optimisation tournées IA</span><span class="matrix-no">—</span><span class="matrix-yes">✓</span><span class="matrix-yes">✓</span></div>
+    <div class="matrix-row"><span>Documents &amp; douane</span><span class="matrix-no">—</span><span class="matrix-yes">✓</span><span class="matrix-yes">✓</span></div>
+    <div class="matrix-row"><span>Intégrations ERP</span><span class="matrix-no">—</span><span class="matrix-yes">✓</span><span class="matrix-yes">✓</span></div>
+    <div class="matrix-row"><span>API &amp; webhooks</span><span class="matrix-no">—</span><span class="matrix-no">—</span><span class="matrix-yes">✓</span></div>
+    <div class="matrix-row"><span>SLA garanti</span><span class="matrix-no">—</span><span class="matrix-no">—</span><span class="matrix-yes">✓</span></div>
+  </div>
+
+  <div class="pricing-examples">
+    <div class="pricing-examples-head">
+      <p class="kicker">Exemples</p>
+      <h3>Combien ça coûte concrètement&nbsp;?</h3>
+      <p class="pricing-examples-sub">Simulations basées sur le tarif affiché ci-dessus (Standard ou Contrat annuel).</p>
+    </div>
+
+    <div class="pricing-examples-grid">
+      <article class="example-card">
+        <p class="example-label">Ex. 1 · Essentiel</p>
+        <p class="example-volume">500 kg expédiés / mois</p>
+        <p class="example-formula" id="exFormulaStarter">500 kg × 2,20 DH/kg</p>
+        <p class="example-total" id="exTotalStarter">1 100 DH HT</p>
+      </article>
+
+      <article class="example-card example-card--highlight">
+        <p class="example-label">Ex. 2 · Pro (Recommandé)</p>
+        <p class="example-volume">3 000 kg (3 t) expédiés / mois</p>
+        <p class="example-formula" id="exFormulaPro">3 000 kg × 1,65 DH/kg</p>
+        <p class="example-total" id="exTotalPro">4 950 DH HT</p>
+        <p class="example-save" id="exSavePro" hidden></p>
+      </article>
+
+      <article class="example-card">
+        <p class="example-label">Ex. 3 · Entreprise</p>
+        <p class="example-volume">15 000 kg (15 t) expédiés / mois</p>
+        <p class="example-formula" id="exFormulaEnterprise">15 000 kg × 0,95 DH/kg</p>
+        <p class="example-total" id="exTotalEnterprise">14 250 DH HT</p>
+        <p class="example-save" id="exSaveEnterprise" hidden></p>
+      </article>
+    </div>
+
+    <div class="example-compare" aria-label="Comparaison sur 1 200 kg">
+      <p class="example-compare-title">Même expédition · 1 200 kg — quel plan choisir&nbsp;?</p>
+      <div class="example-compare-row">
+        <div><span class="example-compare-plan">Essentiel</span><span class="example-compare-val" id="exCmpStarter">2 640 DH</span></div>
+        <div class="example-compare-plan--pro"><span class="example-compare-plan">Pro</span><span class="example-compare-val" id="exCmpPro">1 980 DH</span></div>
+        <div><span class="example-compare-plan">Entreprise</span><span class="example-compare-val" id="exCmpEnterprise">1 140 DH</span></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="pricing-footnote">Tarifs HT · Facturation au poids réel expédié (kg pesé à l'enlèvement ou à la livraison) · Données hébergées UE / Maroc</p>
+</section>
+
+<!-- ============ INSCRIPTION ============ -->
+<section class="cta-band" id="inscription">
+  <div class="cta-inner">
+    <h2>Prêt à reprendre le contrôle de votre logistique&nbsp;?</h2>
+    <p>Rejoignez PTL et pilotez vos expéditions au kilo, en temps réel.</p>
+    <a href="#" class="btn btn-primary btn-lg">S'inscrire</a>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="brand">PTL</span>
+      <p>Gestion du transport et de la logistique, sans la complexité d'un ERP.</p>
+    </div>
+    <div class="footer-cols">
+      <div>
+        <h4>Produit</h4>
+        <a href="#produits">Suivi de flotte</a>
+        <a href="#produits">Expéditions</a>
+        <a href="#produits">Tournées</a>
+        <a href="#produits">Documents</a>
+      </div>
+      <div>
+        <h4>Entreprise</h4>
+        <a href="#">À propos</a>
+        <a href="#">Contact</a>
+        <a href="#tarifs">Tarifs</a>
+      </div>
+      <div>
+        <h4>Ressources</h4>
+        <a href="#">Centre d'aide</a>
+        <a href="#">Documentation</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">© 2026 PTL. Tous droits réservés.</div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
