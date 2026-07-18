@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import FleetTrackingMap from "./components/FleetTrackingMap";
 import {
   Truck, MapPin, Users, BarChart3, Bell, ChevronRight,
   TrendingUp, AlertTriangle, Clock, Fuel, Wrench,
@@ -72,16 +73,16 @@ const activeDeliveryStatuses = new Set(["en_route", "livraison", "alerte"]);
 
 /* ── Mock data ── */
 const fleetDataInit = [
-  { id:"TRK-001", plate:"12345-A-7", driverId:"DRV-001", driver:"Hassan Benali",  status:"en_route",   route:"Casablanca → Tanger",   fuel:72, load:"Produits alimentaires", productType:"Produits agroalimentaires" as const, km:312, wx:18.5, wy:47.5 },
-  { id:"TRK-002", plate:"67890-B-3", driverId:"DRV-002", driver:"Mohamed Oulad",  status:"livraison",  route:"Rabat → Fès",           fuel:45, load:"Matériaux construction", productType:"Matériaux de construction" as const, km:187, wx:19.0, wy:47.0 },
-  { id:"TRK-003", plate:"11223-C-9", driverId:null,       driver:"—",             status:"disponible", route:"—",                     fuel:91, load:"—", productType:null, km:0,   wx:17.5, wy:48.5 },
-  { id:"TRK-004", plate:"44556-D-2", driverId:null,       driver:"—",             status:"maintenance",route:"—",                     fuel:28, load:"—", productType:null, km:0,   wx:20.0, wy:49.0 },
-  { id:"TRK-005", plate:"77889-E-5", driverId:"DRV-005", driver:"Karim Tazi",     status:"en_route",   route:"Agadir → Marrakech",    fuel:63, load:"Textiles export", productType:"Textiles / Prêt-à-porter" as const, km:244, wx:17.0, wy:50.5 },
-  { id:"TRK-006", plate:"99001-F-1", driverId:"DRV-006", driver:"Omar Fassi",     status:"alerte",     route:"Oujda → Nador",         fuel:12, load:"Pièces automobiles", productType:"Pièces automobiles" as const, km:91,  wx:22.0, wy:46.0 },
-  { id:"TRK-007", plate:"33445-G-8", driverId:"DRV-003", driver:"Youssef Darif",  status:"en_route",   route:"Casablanca → Paris",    fuel:55, load:"Textiles export", productType:"Textiles / Prêt-à-porter" as const, km:890, wx:47.0, wy:28.0 },
-  { id:"TRK-008", plate:"55667-H-4", driverId:"DRV-007", driver:"Ibrahim Chaoui", status:"livraison",  route:"Tanger → Barcelone",    fuel:38, load:"Agro-alimentaire", productType:"Produits agroalimentaires" as const, km:620, wx:44.5, wy:31.0 },
-  { id:"TRK-009", plate:"88112-I-6", driverId:"DRV-004", driver:"Rachid Amrani",  status:"en_route",   route:"Casablanca → Safi",     fuel:68, load:"Produits chimiques", productType:"Produits chimiques" as const, km:156, wx:18.8, wy:49.2 },
-  { id:"TRK-010", plate:"99334-J-0", driverId:"DRV-008", driver:"Salim Bouazza",  status:"livraison",  route:"Tanger → Rotterdam",    fuel:41, load:"Matières premières", productType:"Matières premières" as const, km:740, wx:49.5, wy:22.0 },
+  { id:"TRK-001", plate:"12345-A-7", driverId:"DRV-001", driver:"Hassan Benali",  status:"en_route",   route:"Casablanca → Tanger",   fuel:72, load:"Produits alimentaires", productType:"Produits agroalimentaires" as const, km:312, wx:18.5, wy:47.5, lat:34.52, lng:-6.71, routeFrom:[33.5731,-7.5898] as [number,number], routeTo:[35.7595,-5.8340] as [number,number] },
+  { id:"TRK-002", plate:"67890-B-3", driverId:"DRV-002", driver:"Mohamed Oulad",  status:"livraison",  route:"Rabat → Fès",           fuel:45, load:"Matériaux construction", productType:"Matériaux de construction" as const, km:187, wx:19.0, wy:47.0, lat:34.15, lng:-5.55, routeFrom:[34.0209,-6.8416] as [number,number], routeTo:[34.0181,-5.0078] as [number,number] },
+  { id:"TRK-003", plate:"11223-C-9", driverId:null,       driver:"—",             status:"disponible", route:"—",                     fuel:91, load:"—", productType:null, km:0,   wx:17.5, wy:48.5, lat:33.5731, lng:-7.5898 },
+  { id:"TRK-004", plate:"44556-D-2", driverId:null,       driver:"—",             status:"maintenance",route:"—",                     fuel:28, load:"—", productType:null, km:0,   wx:20.0, wy:49.0, lat:33.5731, lng:-7.5898 },
+  { id:"TRK-005", plate:"77889-E-5", driverId:"DRV-005", driver:"Karim Tazi",     status:"en_route",   route:"Agadir → Marrakech",    fuel:63, load:"Textiles export", productType:"Textiles / Prêt-à-porter" as const, km:244, wx:17.0, wy:50.5, lat:31.2, lng:-8.5, routeFrom:[30.4278,-9.5981] as [number,number], routeTo:[31.6295,-7.9811] as [number,number] },
+  { id:"TRK-006", plate:"99001-F-1", driverId:"DRV-006", driver:"Omar Fassi",     status:"alerte",     route:"Oujda → Nador",         fuel:12, load:"Pièces automobiles", productType:"Pièces automobiles" as const, km:91,  wx:22.0, wy:46.0, lat:35.0, lng:-2.5, routeFrom:[34.6814,-1.9086] as [number,number], routeTo:[35.1681,-2.9337] as [number,number] },
+  { id:"TRK-007", plate:"33445-G-8", driverId:"DRV-003", driver:"Youssef Darif",  status:"en_route",   route:"Casablanca → Paris",    fuel:55, load:"Textiles export", productType:"Textiles / Prêt-à-porter" as const, km:890, wx:47.0, wy:28.0, lat:43.5, lng:-1.2, routeFrom:[33.5731,-7.5898] as [number,number], routeTo:[48.8566,2.3522] as [number,number] },
+  { id:"TRK-008", plate:"55667-H-4", driverId:"DRV-007", driver:"Ibrahim Chaoui", status:"livraison",  route:"Tanger → Barcelone",    fuel:38, load:"Agro-alimentaire", productType:"Produits agroalimentaires" as const, km:620, wx:44.5, wy:31.0, lat:40.5, lng:0.5, routeFrom:[35.7595,-5.8340] as [number,number], routeTo:[41.3874,2.1686] as [number,number] },
+  { id:"TRK-009", plate:"88112-I-6", driverId:"DRV-004", driver:"Rachid Amrani",  status:"en_route",   route:"Casablanca → Safi",     fuel:68, load:"Produits chimiques", productType:"Produits chimiques" as const, km:156, wx:18.8, wy:49.2, lat:33.0, lng:-8.5, routeFrom:[33.5731,-7.5898] as [number,number], routeTo:[32.2994,-9.2372] as [number,number] },
+  { id:"TRK-010", plate:"99334-J-0", driverId:"DRV-008", driver:"Salim Bouazza",  status:"livraison",  route:"Tanger → Rotterdam",    fuel:41, load:"Matières premières", productType:"Matières premières" as const, km:740, wx:49.5, wy:22.0, lat:47.0, lng:3.5, routeFrom:[35.7595,-5.8340] as [number,number], routeTo:[51.9244,4.4777] as [number,number] },
 ];
 
 const driversData = [
@@ -982,18 +983,6 @@ function FleetTrackingSection() {
     productTypes.map(type => [type, delivering.filter(t => t.productType === type).length])
   ) as Record<(typeof productTypes)[number], number>;
 
-  const landPaths = [
-    "M5,18 L8,14 L14,13 L22,15 L26,19 L28,25 L27,30 L24,35 L21,38 L17,37 L13,39 L9,36 L6,30 L5,24 Z",
-    "M18,42 L22,40 L26,42 L28,48 L27,56 L25,62 L22,65 L18,64 L15,58 L14,50 L15,44 Z",
-    "M44,18 L48,16 L54,17 L58,19 L60,23 L58,27 L54,29 L50,31 L46,29 L43,25 L44,20 Z",
-    "M44,30 L52,28 L58,30 L62,36 L63,44 L61,54 L58,62 L54,66 L49,67 L44,65 L40,58 L38,50 L40,40 L42,33 Z",
-    "M58,17 L68,14 L80,15 L88,20 L92,26 L88,32 L80,36 L70,37 L62,34 L57,28 L58,20 Z",
-    "M80,36 L88,32 L92,38 L90,44 L85,48 L78,46 L76,40 Z",
-    "M78,54 L84,52 L90,54 L92,60 L90,66 L84,68 L78,66 L76,60 Z",
-    "M26,8 L30,6 L34,8 L34,13 L30,15 L26,13 Z",
-    "M43,18 L45,16 L47,17 L47,21 L44,22 L43,20 Z",
-  ];
-
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -1084,57 +1073,13 @@ function FleetTrackingSection() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
-        <div className="xl:col-span-2 bg-card rounded-2xl border border-border overflow-hidden relative" style={{ height: 420 }}>
-          <div className="absolute inset-0" style={{ background: "linear-gradient(160deg,#C8E6F7 0%,#B8D8F0 50%,#C5E0F5 100%)" }}>
-            <svg viewBox="0 0 100 80" className="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid meet" style={{ pointerEvents: "none" }}>
-              {[...Array(9)].map((_, i) => <line key={`h${i}`} x1="0" y1={i * 10} x2="100" y2={i * 10} stroke="rgba(27,58,107,0.06)" strokeWidth="0.3" />)}
-              {[...Array(11)].map((_, i) => <line key={`v${i}`} x1={i * 10} y1="0" x2={i * 10} y2="80" stroke="rgba(27,58,107,0.06)" strokeWidth="0.3" />)}
-              {landPaths.map((d, i) => <path key={i} d={d} fill="rgba(27,58,107,0.08)" stroke="rgba(27,58,107,0.2)" strokeWidth="0.3" />)}
-            </svg>
-            {filtered.map(t => {
-              const meta = t.productType ? productClassificationMeta[t.productType] : { color: "#5A6882", bg: "#EFF2F8" };
-              return (
-                <button
-                  key={t.id}
-                  className="absolute focus:outline-none z-10"
-                  style={{ left: `${t.wx}%`, top: `${t.wy}%`, transform: "translate(-50%,-50%)" }}
-                  onClick={() => setSel(p => p?.id === t.id ? null : t)}
-                >
-                  <div className="relative">
-                    <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center shadow-md hover:scale-110 transition-transform border-2 border-white"
-                      style={{ backgroundColor: meta.color }}
-                    >
-                      <Package size={14} className="text-white" />
-                    </div>
-                    {t.status === "alerte" && <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-red-500 animate-ping" />}
-                  </div>
-                </button>
-              );
-            })}
-            {sel && sel.productType && (
-              <div className="absolute top-3 right-3 bg-white rounded-xl shadow-xl border border-border w-60 p-3 z-20">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-bold text-xs">{sel.id}</span>
-                  <button onClick={() => setSel(null)} className="p-0.5 hover:bg-muted rounded text-muted-foreground"><X size={12} /></button>
-                </div>
-                <span
-                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold mb-2"
-                  style={{ color: productClassificationMeta[sel.productType].color, backgroundColor: productClassificationMeta[sel.productType].bg }}
-                >
-                  <Package size={10} /> {sel.productType}
-                </span>
-                <p className="text-xs font-semibold text-foreground">{sel.driver}</p>
-                <p className="text-xs text-muted-foreground">{sel.plate} · {sel.route}</p>
-                <p className="text-xs text-muted-foreground mt-1">Charge : {sel.load}</p>
-                <div className="mt-2 mb-2"><FuelBar value={sel.fuel} /></div>
-                <StatusBadge status={sel.status} />
-              </div>
-            )}
-            <div className="absolute bottom-3 left-3 bg-white/80 backdrop-blur rounded-lg px-3 py-1.5 text-xs text-muted-foreground border border-border">
-              {filtered.length} camion{filtered.length > 1 ? "s" : ""} affiché{filtered.length > 1 ? "s" : ""}
-            </div>
-          </div>
+        <div className="xl:col-span-2 bg-card rounded-2xl border border-border overflow-hidden" style={{ height: 420 }}>
+          <FleetTrackingMap
+            trucks={filtered}
+            selectedId={sel?.id ?? null}
+            onSelect={t => setSel(t)}
+            productMeta={productClassificationMeta}
+          />
         </div>
 
         <div className="bg-card rounded-2xl border border-border flex flex-col overflow-hidden">
@@ -1142,8 +1087,25 @@ function FleetTrackingSection() {
             <h3 className="text-sm font-bold text-foreground" style={{ fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
               Camions triés par marchandise
             </h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Classés par type de produit livré</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Cliquez pour localiser sur la carte</p>
           </div>
+          {sel && sel.productType && (
+            <div className="px-4 py-3 border-b border-border bg-secondary/40">
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-bold text-xs">{sel.id}</span>
+                <button onClick={() => setSel(null)} className="p-0.5 hover:bg-muted rounded text-muted-foreground"><X size={12} /></button>
+              </div>
+              <span
+                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                style={{ color: productClassificationMeta[sel.productType].color, backgroundColor: productClassificationMeta[sel.productType].bg }}
+              >
+                <Package size={10} /> {sel.productType}
+              </span>
+              <p className="text-xs font-semibold text-foreground mt-2">{sel.driver}</p>
+              <p className="text-xs text-muted-foreground">{sel.route} · {sel.km} km</p>
+              <div className="mt-2"><FuelBar value={sel.fuel} /></div>
+            </div>
+          )}
           <div className="flex-1 overflow-y-auto p-3 space-y-2 max-h-[420px]" style={{ scrollbarWidth: "thin" }}>
             {filtered.length === 0 ? (
               <div className="text-center py-10 text-sm text-muted-foreground">
