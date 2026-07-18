@@ -1,0 +1,78 @@
+{
+  "uid": "tptruck-overview",
+  "title": "TP-Truck | Platform Overview",
+  "tags": ["tp-truck", "logistics"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-6h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "env",
+        "type": "custom",
+        "query": "dev,uat,prod",
+        "current": { "text": "dev", "value": "dev" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "API Availability",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "targets": [
+        { "expr": "avg(up{job=\"truck-fleet-app\"})", "refId": "A" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0, "max": 1 } }
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Request Rate (req/s) by URI",
+      "gridPos": { "h": 8, "w": 12, "x": 6, "y": 0 },
+      "targets": [
+        { "expr": "sum(rate(http_server_requests_seconds_count{job=\"truck-fleet-app\"}[1m])) by (uri)", "refId": "A" }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "p95 Latency (s)",
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 0 },
+      "targets": [
+        { "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{job=\"truck-fleet-app\"}[5m])) by (le))", "refId": "A" }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "5xx Error Rate",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        { "expr": "sum(rate(http_server_requests_seconds_count{job=\"truck-fleet-app\",status=~\"5..\"}[5m]))", "refId": "A" }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "JVM Heap Used",
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 8 },
+      "targets": [
+        { "expr": "sum(jvm_memory_used_bytes{job=\"truck-fleet-app\",area=\"heap\"})", "refId": "A" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes" } }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "HikariCP Active Connections",
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 8 },
+      "targets": [
+        { "expr": "hikaricp_connections_active{job=\"truck-fleet-app\"}", "refId": "A" }
+      ]
+    }
+  ]
+}

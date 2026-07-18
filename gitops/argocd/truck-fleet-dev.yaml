@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: truck-fleet-dev
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: tp-truck
+  source:
+    repoURL: https://github.com/Truck-manager-TP/Main.git
+    targetRevision: main
+    path: k8s/overlays/dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tp-truck-dev
+  syncPolicy:
+    automated:          # DEV auto-syncs: fastest feedback, self-heals drift.
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

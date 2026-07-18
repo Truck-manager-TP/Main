@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: truck-fleet-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: tp-truck
+  source:
+    repoURL: https://github.com/Truck-manager-TP/Main.git
+    targetRevision: main
+    path: k8s/overlays/prod
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tp-truck-prod
+  syncPolicy:
+    # PROD is intentionally MANUAL sync: Argo detects OutOfSync after the
+    # promotion commit, but the actual sync is triggered by Digital.ai Release
+    # only after the ServiceNow Change ticket is Approved.
+    syncOptions:
+      - CreateNamespace=true
+  revisionHistoryLimit: 10

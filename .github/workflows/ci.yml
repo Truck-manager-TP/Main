@@ -1,0 +1,70 @@
+name: CI - Build, Quality & Package
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  IMAGE: ghcr.io/truck-manager-tp/truck-fleet
+
+jobs:
+  build-test-scan:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: tptruck
+          POSTGRES_USER: tptruck
+          POSTGRES_PASSWORD: tptruck
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U tptruck" --health-interval 10s
+          --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0            # full history for accurate Sonar new-code detection
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Build, test & coverage
+        working-directory: app
+        run: mvn -B clean verify
+
+      - name: SonarQube scan + quality gate (blocks on failure)
+        working-directory: app
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: >-
+          mvn -B sonar:sonar
+          -Dsonar.host.url=$SONAR_HOST_URL
+          -Dsonar.token=$SONAR_TOKEN
+          -Dsonar.qualitygate.wait=true
+
+      - name: Build & push image (main only)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker build -t $IMAGE:${{ github.sha }} -t $IMAGE:1.0.0 ./app
+          docker push $IMAGE:${{ github.sha }}
+          docker push $IMAGE:1.0.0
+
+  trigger-release:
+    needs: build-test-scan
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kick off Digital.ai Release pipeline
+        run: |
+          curl -fsS -X POST "${{ secrets.DAI_RELEASE_URL }}/api/v1/templates/TP-Truck/start" \
+            -H "Authorization: Bearer ${{ secrets.DAI_RELEASE_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"variables":{"version":"1.0.0","imageTag":"'"$IMAGE:${{ github.sha }}"'"}}'

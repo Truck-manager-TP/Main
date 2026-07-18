@@ -1,0 +1,21 @@
+# PROD: locked down, no Swagger, larger pool, restrained logging.
+logging:
+  level:
+    root: WARN
+    com.tptruck: INFO
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 40
+
+management:
+  endpoint:
+    health:
+      show-details: never

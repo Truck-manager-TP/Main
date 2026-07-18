@@ -1,0 +1,27 @@
+Issue Type,Epic Name,Summary,Component,Story Points,Labels,Sprint
+Epic,PLAN,Foundation & DevOps toolchain bring-up,Platform,,devops,Sprint 1
+Story,,As a platform engineer I configure the Digital.ai Release pipeline template,Platform,5,pipeline,Sprint 1
+Story,,As a platform engineer I stand up SonarQube with the TP-Truck quality gate,Quality,3,sonarqube,Sprint 1
+Story,,As a DBA I author Flyway V1-V5 migration scripts,Fleet,5,flyway,Sprint 1
+Epic,BUILD,Fleet & Expense management module,Fleet,,module,Sprint 2
+Story,,As an ops manager I register trucks with classification by product type,Fleet,5,api,Sprint 2
+Story,,As a finance user I record fuel/maintenance/ticket overheads per truck,Fleet,5,api,Sprint 2
+Story,,As a finance user I see total overhead per truck,Fleet,3,api,Sprint 2
+Epic,BUILD,Route tracking (Suivi d'itineraire),Route,,module,Sprint 3
+Story,,As a dispatcher I create domestic and international routes,Route,5,api,Sprint 3
+Story,,As a dispatcher I push live GPS positions to a route,Route,5,realtime,Sprint 3
+Epic,BUILD,Driver management (Gestion des Drivers),Driver,,module,Sprint 4
+Story,,As a compliance officer I flag domestic vs international drivers,Driver,3,compliance,Sprint 4
+Story,,As a dispatcher I check a driver's eligibility for a route scope,Driver,5,compliance,Sprint 4
+Epic,BUILD,Marketing & Growth,Marketing,,module,Sprint 5
+Story,,As a growth lead I capture inbound partner leads,Marketing,3,api,Sprint 5
+Story,,As a growth lead I view the onboarding funnel on Grafana,Marketing,3,dashboard,Sprint 5
+Epic,TEST,Quality gates & performance,Quality,,quality,Sprint 5
+Story,,As a QA I add JMeter load test hitting all four modules,Quality,5,jmeter,Sprint 5
+Story,,As a QA I enforce 80% new-code coverage in the Sonar gate,Quality,3,sonarqube,Sprint 5
+Epic,DEPLOY,GitOps delivery to DEV/UAT/PROD,Platform,,gitops,Sprint 6
+Story,,As a release manager I define Argo CD Applications per environment,Platform,5,argocd,Sprint 6
+Story,,As a release manager I gate PROD sync behind a ServiceNow CAB approval,Platform,5,servicenow,Sprint 6
+Epic,OPERATE,Observability & incident automation,Platform,,observability,Sprint 6
+Story,,As an SRE I ship Prometheus alert rules and a Grafana overview dashboard,Platform,5,grafana,Sprint 6
+Story,,As an SRE I auto-raise ServiceNow incidents from critical Grafana alerts,Platform,3,servicenow,Sprint 6

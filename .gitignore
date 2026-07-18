@@ -1,0 +1,28 @@
+# Java / Maven
+app/target/
+*.class
+
+# Terraform
+infra/terraform/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.plan
+crash.log
+
+# Env & secrets
+.env
+*.local
+
+# JMeter results
+docker/jmeter/results/
+**/results/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

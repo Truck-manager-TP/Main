@@ -1,0 +1,14 @@
+# DEV: verbose logging, permissive actuator, fast feedback.
+logging:
+  level:
+    com.tptruck: DEBUG
+    org.hibernate.SQL: DEBUG
+
+management:
+  endpoint:
+    health:
+      show-details: always
+
+springdoc:
+  swagger-ui:
+    enabled: true

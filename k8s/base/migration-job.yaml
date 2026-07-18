@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: flyway-migrate
+  annotations:
+    # Argo runs this as a PreSync hook: migrations complete before the new
+    # app version receives traffic. Failure aborts the sync (no half-deploy).
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: flyway
+          image: tptruck/flyway:1.0.0
+          args: ["migrate"]
+          envFrom:
+            - secretRef:
+                name: truck-fleet-db

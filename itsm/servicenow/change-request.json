@@ -1,0 +1,16 @@
+{
+  "_comment": "Payload POSTed to ServiceNow Table API (/api/now/table/change_request) by the Digital.ai Release 'Open Change' task before any UAT/PROD apply.",
+  "short_description": "Promote TP-Truck Fleet ${version} to ${environment}",
+  "description": "Automated change opened by Digital.ai Release pipeline. Terraform plan and Argo diff attached. Includes Flyway migrations V1..V5 and image ${imageTag}.",
+  "type": "normal",
+  "category": "Software",
+  "cmdb_ci": "tp-truck-fleet",
+  "assignment_group": "Change Advisory Board",
+  "risk": "moderate",
+  "impact": "2",
+  "u_devops_pipeline": "digitalai-release/TP-Truck",
+  "u_artifact_version": "${version}",
+  "u_terraform_plan_url": "${TF_PLAN_ARTIFACT_URL}",
+  "u_argocd_app": "truck-fleet-${environment}",
+  "justification": "Feature increment delivered; passed SonarQube gate and JMeter SLA in UAT."
+}

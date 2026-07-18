@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: tp-truck
+  namespace: argocd
+spec:
+  description: TP-Truck Fleet & Logistics platform
+  sourceRepos:
+    - https://github.com/Truck-manager-TP/Main.git
+  destinations:
+    - namespace: 'tp-truck-*'
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'

@@ -1,0 +1,13 @@
+{
+  "_comment": "Grafana/Prometheus critical alerts POST here (/api/now/table/incident) via the webhook contact point, auto-raising an incident and closing the feedback loop.",
+  "short_description": "[{{ .CommonLabels.severity }}] {{ .CommonLabels.alertname }} on TP-Truck ${env}",
+  "description": "{{ range .Alerts }}{{ .Annotations.summary }} - {{ .Annotations.description }}\n{{ end }}",
+  "urgency": "1",
+  "impact": "1",
+  "category": "Software",
+  "cmdb_ci": "tp-truck-fleet",
+  "assignment_group": "Platform SRE",
+  "u_source": "grafana",
+  "u_runbook": "https://github.com/Truck-manager-TP/Main/blob/main/docs/DEVOPS_LIFECYCLE.md#operate",
+  "correlation_id": "{{ .GroupKey }}"
+}

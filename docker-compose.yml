@@ -1,0 +1,125 @@
+# =============================================================================
+# TP-Truck | Full DevOps environment - each tool in its own dedicated container
+# -----------------------------------------------------------------------------
+# Base stack. Compose the environment-specific overrides on top:
+#   DEV : docker compose -f docker-compose.yml -f docker-compose.dev.yml  up -d
+#   UAT : docker compose -f docker-compose.yml -f docker-compose.uat.yml  up -d
+#   PROD: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# =============================================================================
+
+name: tp-truck
+
+networks:
+  tptruck-net:
+    driver: bridge
+
+volumes:
+  pg-data:
+  sonarqube-data:
+  sonarqube-extensions:
+  sonarqube-logs:
+  grafana-data:
+  prometheus-data:
+  jmeter-results:
+
+services:
+
+  # ---- Datastore -----------------------------------------------------------
+  postgres:
+    build:
+      context: ./docker/postgres
+    image: tptruck/postgres:1.0.0
+    environment:
+      POSTGRES_DB: ${DB_NAME:-tptruck}
+      POSTGRES_USER: ${DB_USER:-tptruck}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-tptruck}
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    networks: [tptruck-net]
+    restart: unless-stopped
+
+  # ---- Database migrations (runs to completion, then exits) ----------------
+  flyway:
+    build:
+      context: ./docker/flyway
+    image: tptruck/flyway:1.0.0
+    environment:
+      FLYWAY_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-tptruck}
+      FLYWAY_USER: ${DB_USER:-tptruck}
+      FLYWAY_PASSWORD: ${DB_PASSWORD:-tptruck}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [tptruck-net]
+    restart: on-failure
+
+  # ---- Application ---------------------------------------------------------
+  app:
+    build:
+      context: ./app
+    image: tptruck/truck-fleet:${APP_VERSION:-1.0.0}
+    environment:
+      APP_ENV: ${APP_ENV:-dev}
+      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-tptruck}
+      DB_USER: ${DB_USER:-tptruck}
+      DB_PASSWORD: ${DB_PASSWORD:-tptruck}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      flyway:
+        condition: service_completed_successfully
+    networks: [tptruck-net]
+    restart: unless-stopped
+
+  # ---- Static analysis / quality gate --------------------------------------
+  sonarqube:
+    build:
+      context: ./docker/sonarqube
+    image: tptruck/sonarqube:1.0.0
+    environment:
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+    volumes:
+      - sonarqube-data:/opt/sonarqube/data
+      - sonarqube-extensions:/opt/sonarqube/extensions
+      - sonarqube-logs:/opt/sonarqube/logs
+    networks: [tptruck-net]
+    restart: unless-stopped
+
+  # ---- Metrics -------------------------------------------------------------
+  prometheus:
+    build:
+      context: ./docker/prometheus
+    image: tptruck/prometheus:1.0.0
+    environment:
+      APP_ENV: ${APP_ENV:-dev}
+    volumes:
+      - prometheus-data:/prometheus
+    depends_on: [app]
+    networks: [tptruck-net]
+    restart: unless-stopped
+
+  # ---- Dashboards ----------------------------------------------------------
+  grafana:
+    build:
+      context: ./docker/grafana
+    image: tptruck/grafana:1.0.0
+    environment:
+      SERVICENOW_WEBHOOK_URL: ${SERVICENOW_WEBHOOK_URL:-http://localhost/mock-servicenow}
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on: [prometheus]
+    networks: [tptruck-net]
+    restart: unless-stopped
+
+  # ---- Performance testing (profile: perf - run on demand) -----------------
+  jmeter:
+    build:
+      context: ./docker/jmeter
+    image: tptruck/jmeter:1.0.0
+    profiles: ["perf"]
+    environment:
+      APP_ENV: ${APP_ENV:-dev}
+    volumes:
+      - jmeter-results:/tests/results
+    depends_on: [app]
+    networks: [tptruck-net]

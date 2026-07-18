@@ -1,0 +1,20 @@
+{
+  "_comment": "ServiceNow DevOps Config governance: maps pipeline artifacts to CMDB CIs so every deploy is traceable to a Change and every alert to a CI.",
+  "application_service": "TP-Truck Fleet & Logistics",
+  "business_criticality": "1 - most critical",
+  "configuration_items": [
+    { "name": "tp-truck-fleet",     "class": "cmdb_ci_app_server", "environment": ["dev", "uat", "prod"] },
+    { "name": "tp-truck-postgres",  "class": "cmdb_ci_db_instance", "environment": ["dev", "uat", "prod"] }
+  ],
+  "devops_tool_integrations": [
+    { "tool": "digitalai-release", "capability": "orchestration" },
+    { "tool": "argocd",            "capability": "deployment" },
+    { "tool": "sonarqube",         "capability": "code-quality" },
+    { "tool": "terraform",         "capability": "iac", "policy": "plan-attached-to-change" }
+  ],
+  "change_governance": {
+    "dev":  { "change_required": false, "auto_approve": true },
+    "uat":  { "change_required": true,  "auto_approve": true,  "approver": "QA Lead" },
+    "prod": { "change_required": true,  "auto_approve": false, "approver": "CAB" }
+  }
+}

@@ -1,0 +1,45 @@
+groups:
+  - name: truck-fleet-slo
+    rules:
+      # ---- Availability -------------------------------------------------
+      - alert: TruckFleetAppDown
+        expr: up{job="truck-fleet-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          # Wired to the ServiceNow webhook -> auto-creates a P1 incident.
+          servicenow: "true"
+        annotations:
+          summary: "Truck Fleet API is down ({{ $labels.instance }})"
+          description: "No successful scrape for 1m. Auto-incident raised in ServiceNow."
+
+      # ---- Latency SLO (95th percentile > 800ms) ------------------------
+      - alert: HighApiLatency
+        expr: histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{job="truck-fleet-app"}[5m])) by (le)) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "p95 API latency above 800ms"
+          description: "Route/fleet endpoints are degrading. Investigate DB and pool saturation."
+
+      # ---- Error budget burn -------------------------------------------
+      - alert: HighServerErrorRate
+        expr: sum(rate(http_server_requests_seconds_count{job="truck-fleet-app",status=~"5.."}[5m])) / sum(rate(http_server_requests_seconds_count{job="truck-fleet-app"}[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          servicenow: "true"
+        annotations:
+          summary: "5xx error rate above 5%"
+          description: "Rolling deploy may be unhealthy; consider Argo rollback."
+
+      # ---- DB connection pool saturation --------------------------------
+      - alert: DbPoolNearExhaustion
+        expr: hikaricp_connections_active{job="truck-fleet-app"} / hikaricp_connections_max{job="truck-fleet-app"} > 0.9
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "HikariCP pool >90% utilised"
+          description: "Increase pool size or investigate slow queries."

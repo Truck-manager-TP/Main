@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: truck-fleet-uat
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: tp-truck
+  source:
+    repoURL: https://github.com/Truck-manager-TP/Main.git
+    targetRevision: main
+    path: k8s/overlays/uat
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tp-truck-uat
+  syncPolicy:
+    # UAT syncs automatically but only after DEV is green; promotion is a
+    # Digital.ai Release task that bumps the image tag via a Git commit.
+    automated:
+      prune: true
+      selfHeal: false
+    syncOptions:
+      - CreateNamespace=true

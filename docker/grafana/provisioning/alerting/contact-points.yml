@@ -1,0 +1,23 @@
+apiVersion: 1
+
+# Grafana -> ServiceNow bridge: firing alerts POST to the ServiceNow
+# Event Management / Incident inbound webhook, closing the feedback loop.
+contactPoints:
+  - orgId: 1
+    name: servicenow-incidents
+    receivers:
+      - uid: sn-webhook
+        type: webhook
+        settings:
+          url: ${SERVICENOW_WEBHOOK_URL}
+          httpMethod: POST
+        disableResolveMessage: false
+
+policies:
+  - orgId: 1
+    receiver: servicenow-incidents
+    group_by: ['alertname', 'env']
+    routes:
+      - receiver: servicenow-incidents
+        matchers:
+          - severity = critical

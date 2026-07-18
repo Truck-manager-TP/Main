@@ -1,0 +1,13 @@
+# UAT: production-like, Swagger still on for acceptance testers.
+logging:
+  level:
+    com.tptruck: INFO
+
+springdoc:
+  swagger-ui:
+    enabled: true
+
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 20
