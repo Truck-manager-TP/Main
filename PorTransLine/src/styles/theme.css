@@ -124,6 +124,11 @@
     @apply border-border outline-ring/50;
   }
 
+  .leaflet-container {
+    font-family: 'Inter', sans-serif;
+    z-index: 0;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', sans-serif;

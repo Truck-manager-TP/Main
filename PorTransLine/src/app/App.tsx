@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import FleetTrackingMap from "./components/FleetTrackingMap";
 import {
   Truck, MapPin, Users, BarChart3, Bell, ChevronRight,
   TrendingUp, AlertTriangle, Clock, Fuel, Wrench,
@@ -6,7 +7,7 @@ import {
   Search, Zap, RefreshCw, Phone, Star,
   ArrowRight, Menu, Plus, X, Camera, Upload, CheckCircle,
   FileText, Package, Calendar, Send, Stamp, Map,
-  ScanLine, Shield, Layers, LogOut, UserCheck, Check
+  ScanLine, Shield, Layers, LogOut, UserCheck, Check, Filter
 } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -15,7 +16,7 @@ import {
 
 /* ── Types ── */
 type AppView = "login" | "admin" | "driver" | "client";
-type AdminSection = "dashboard" | "fleet" | "routes" | "drivers" | "expenses" | "marketing" | "demandes" | "carte";
+type AdminSection = "dashboard" | "fleet" | "routes" | "drivers" | "expenses" | "marketing" | "demandes" | "carte" | "suivi";
 type ClientPage = "home" | "newrequest" | "myrequests";
 type DriverPage = "mission" | "depenses" | "tickets" | "pointage";
 
@@ -51,18 +52,37 @@ const productTypes = [
   "Produits agroalimentaires","Matériaux de construction","Produits chimiques",
   "Textiles / Prêt-à-porter","Équipements industriels","Produits pharmaceutiques",
   "Pièces automobiles","Produits pétroliers","Matières premières","Autre",
-];
+] as const;
+
+const productClassificationMeta: Record<(typeof productTypes)[number], { color: string; bg: string; short: string }> = {
+  "Produits agroalimentaires": { color: "#10B981", bg: "#ECFDF5", short: "Agro" },
+  "Matériaux de construction": { color: "#78716C", bg: "#F5F5F4", short: "BTP" },
+  "Produits chimiques": { color: "#DC2626", bg: "#FEF2F2", short: "Chimie" },
+  "Textiles / Prêt-à-porter": { color: "#8B5CF6", bg: "#F5F3FF", short: "Textile" },
+  "Équipements industriels": { color: "#1B3A6B", bg: "#E8EEF6", short: "Indus." },
+  "Produits pharmaceutiques": { color: "#0891B2", bg: "#ECFEFF", short: "Pharma" },
+  "Pièces automobiles": { color: "#F97316", bg: "#FEF3E8", short: "Auto" },
+  "Produits pétroliers": { color: "#D97706", bg: "#FFFBEB", short: "Pétrole" },
+  "Matières premières": { color: "#059669", bg: "#D1FAE5", short: "Matières" },
+  "Autre": { color: "#5A6882", bg: "#EFF2F8", short: "Autre" },
+};
+
+type ProductFilter = "all" | (typeof productTypes)[number];
+
+const activeDeliveryStatuses = new Set(["en_route", "livraison", "alerte"]);
 
 /* ── Mock data ── */
 const fleetDataInit = [
-  { id:"TRK-001", plate:"12345-A-7", driverId:"DRV-001", driver:"Hassan Benali",  status:"en_route",   route:"Casablanca → Tanger",   fuel:72, load:"Produits alimentaires", km:312, wx:18.5, wy:47.5 },
-  { id:"TRK-002", plate:"67890-B-3", driverId:"DRV-002", driver:"Mohamed Oulad",  status:"livraison",  route:"Rabat → Fès",           fuel:45, load:"Matériaux construction",km:187, wx:19.0, wy:47.0 },
-  { id:"TRK-003", plate:"11223-C-9", driverId:null,       driver:"—",             status:"disponible", route:"—",                     fuel:91, load:"—",                   km:0,   wx:17.5, wy:48.5 },
-  { id:"TRK-004", plate:"44556-D-2", driverId:null,       driver:"—",             status:"maintenance",route:"—",                     fuel:28, load:"—",                   km:0,   wx:20.0, wy:49.0 },
-  { id:"TRK-005", plate:"77889-E-5", driverId:"DRV-005", driver:"Karim Tazi",     status:"en_route",   route:"Agadir → Marrakech",    fuel:63, load:"Textiles export",      km:244, wx:17.0, wy:50.5 },
-  { id:"TRK-006", plate:"99001-F-1", driverId:"DRV-006", driver:"Omar Fassi",     status:"alerte",     route:"Oujda → Nador",         fuel:12, load:"Pièces automobiles",   km:91,  wx:22.0, wy:46.0 },
-  { id:"TRK-007", plate:"33445-G-8", driverId:"DRV-003", driver:"Youssef Darif",  status:"en_route",   route:"Casablanca → Paris",    fuel:55, load:"Textiles export",      km:890, wx:47.0, wy:28.0 },
-  { id:"TRK-008", plate:"55667-H-4", driverId:"DRV-007", driver:"Ibrahim Chaoui", status:"livraison",  route:"Tanger → Barcelone",    fuel:38, load:"Agro-alimentaire",     km:620, wx:44.5, wy:31.0 },
+  { id:"TRK-001", plate:"12345-A-7", driverId:"DRV-001", driver:"Hassan Benali",  status:"en_route",   route:"Casablanca → Tanger",   fuel:72, load:"Produits alimentaires", productType:"Produits agroalimentaires" as const, km:312, wx:18.5, wy:47.5, lat:34.52, lng:-6.71, routeFrom:[33.5731,-7.5898] as [number,number], routeTo:[35.7595,-5.8340] as [number,number] },
+  { id:"TRK-002", plate:"67890-B-3", driverId:"DRV-002", driver:"Mohamed Oulad",  status:"livraison",  route:"Rabat → Fès",           fuel:45, load:"Matériaux construction", productType:"Matériaux de construction" as const, km:187, wx:19.0, wy:47.0, lat:34.15, lng:-5.55, routeFrom:[34.0209,-6.8416] as [number,number], routeTo:[34.0181,-5.0078] as [number,number] },
+  { id:"TRK-003", plate:"11223-C-9", driverId:null,       driver:"—",             status:"disponible", route:"—",                     fuel:91, load:"—", productType:null, km:0,   wx:17.5, wy:48.5, lat:33.5731, lng:-7.5898 },
+  { id:"TRK-004", plate:"44556-D-2", driverId:null,       driver:"—",             status:"maintenance",route:"—",                     fuel:28, load:"—", productType:null, km:0,   wx:20.0, wy:49.0, lat:33.5731, lng:-7.5898 },
+  { id:"TRK-005", plate:"77889-E-5", driverId:"DRV-005", driver:"Karim Tazi",     status:"en_route",   route:"Agadir → Marrakech",    fuel:63, load:"Textiles export", productType:"Textiles / Prêt-à-porter" as const, km:244, wx:17.0, wy:50.5, lat:31.2, lng:-8.5, routeFrom:[30.4278,-9.5981] as [number,number], routeTo:[31.6295,-7.9811] as [number,number] },
+  { id:"TRK-006", plate:"99001-F-1", driverId:"DRV-006", driver:"Omar Fassi",     status:"alerte",     route:"Oujda → Nador",         fuel:12, load:"Pièces automobiles", productType:"Pièces automobiles" as const, km:91,  wx:22.0, wy:46.0, lat:35.0, lng:-2.5, routeFrom:[34.6814,-1.9086] as [number,number], routeTo:[35.1681,-2.9337] as [number,number] },
+  { id:"TRK-007", plate:"33445-G-8", driverId:"DRV-003", driver:"Youssef Darif",  status:"en_route",   route:"Casablanca → Paris",    fuel:55, load:"Textiles export", productType:"Textiles / Prêt-à-porter" as const, km:890, wx:47.0, wy:28.0, lat:43.5, lng:-1.2, routeFrom:[33.5731,-7.5898] as [number,number], routeTo:[48.8566,2.3522] as [number,number] },
+  { id:"TRK-008", plate:"55667-H-4", driverId:"DRV-007", driver:"Ibrahim Chaoui", status:"livraison",  route:"Tanger → Barcelone",    fuel:38, load:"Agro-alimentaire", productType:"Produits agroalimentaires" as const, km:620, wx:44.5, wy:31.0, lat:40.5, lng:0.5, routeFrom:[35.7595,-5.8340] as [number,number], routeTo:[41.3874,2.1686] as [number,number] },
+  { id:"TRK-009", plate:"88112-I-6", driverId:"DRV-004", driver:"Rachid Amrani",  status:"en_route",   route:"Casablanca → Safi",     fuel:68, load:"Produits chimiques", productType:"Produits chimiques" as const, km:156, wx:18.8, wy:49.2, lat:33.0, lng:-8.5, routeFrom:[33.5731,-7.5898] as [number,number], routeTo:[32.2994,-9.2372] as [number,number] },
+  { id:"TRK-010", plate:"99334-J-0", driverId:"DRV-008", driver:"Salim Bouazza",  status:"livraison",  route:"Tanger → Rotterdam",    fuel:41, load:"Matières premières", productType:"Matières premières" as const, km:740, wx:49.5, wy:22.0, lat:47.0, lng:3.5, routeFrom:[35.7595,-5.8340] as [number,number], routeTo:[51.9244,4.4777] as [number,number] },
 ];
 
 const driversData = [
@@ -952,6 +972,214 @@ function ClientMyRequests({onBack,onNew}:{onBack:()=>void;onNew:()=>void}) {
 }
 
 /* ══════════════════════════════════════════
+   ADMIN — FLEET TRACKING BY PRODUCT CLASSIFICATION
+══════════════════════════════════════════ */
+function FleetTrackingSection() {
+  const [productFilter, setProductFilter] = useState<ProductFilter>("all");
+  const [sel, setSel] = useState<typeof fleetDataInit[0] | null>(null);
+  const delivering = fleetDataInit.filter(t => activeDeliveryStatuses.has(t.status) && t.productType);
+  const filtered = delivering.filter(t => productFilter === "all" || t.productType === productFilter);
+  const counts = Object.fromEntries(
+    productTypes.map(type => [type, delivering.filter(t => t.productType === type).length])
+  ) as Record<(typeof productTypes)[number], number>;
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-xl font-bold text-foreground" style={{ fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
+            Suivi flotte · Classification marchandises
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {filtered.length} camion{filtered.length > 1 ? "s" : ""} en livraison
+            {productFilter !== "all" ? ` · ${productFilter}` : ` · ${delivering.length} livraisons actives`}
+          </p>
+        </div>
+        <button
+          onClick={() => setProductFilter("all")}
+          className="flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg border transition-all"
+          style={productFilter === "all"
+            ? { backgroundColor: "#E8EEF6", color: "#1B3A6B", borderColor: "#1B3A6B" }
+            : { borderColor: "var(--border)", color: "#5A6882" }}
+        >
+          <RefreshCw size={13} /> Réinitialiser
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <KpiCard label="Livraisons actives" value={String(delivering.length)} sub="Toutes classifications" icon={Truck} />
+        <KpiCard
+          label="Classification filtrée"
+          value={String(filtered.length)}
+          sub={productFilter === "all" ? "Aucun filtre" : productClassificationMeta[productFilter].short}
+          icon={Filter}
+          accent
+        />
+        <KpiCard
+          label="Types couverts"
+          value={String(Object.values(counts).filter(c => c > 0).length)}
+          sub={`Sur ${productTypes.length} catégories`}
+          icon={Package}
+        />
+        <KpiCard
+          label="Alertes livraison"
+          value={String(filtered.filter(t => t.status === "alerte" || t.fuel < 20).length)}
+          sub="Carburant ou statut"
+          icon={AlertTriangle}
+          alert={filtered.some(t => t.status === "alerte" || t.fuel < 20)}
+        />
+      </div>
+
+      <div className="bg-card rounded-xl border border-border p-4 space-y-3">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Filtrer par type de marchandise</p>
+          <span className="text-xs text-muted-foreground">{delivering.length} camions en livraison</span>
+        </div>
+        <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "thin" }}>
+          <button
+            onClick={() => setProductFilter("all")}
+            className="shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold transition-all"
+            style={productFilter === "all"
+              ? { backgroundColor: "#1B3A6B", color: "#fff", borderColor: "#1B3A6B" }
+              : { borderColor: "var(--border)", color: "#5A6882" }}
+          >
+            <Layers size={13} /> Tous
+            <span className="px-1.5 py-0.5 rounded-full text-[10px]" style={{ backgroundColor: productFilter === "all" ? "rgba(255,255,255,0.2)" : "#EFF2F8" }}>
+              {delivering.length}
+            </span>
+          </button>
+          {productTypes.map(type => {
+            const meta = productClassificationMeta[type];
+            const count = counts[type];
+            const active = productFilter === type;
+            return (
+              <button
+                key={type}
+                onClick={() => setProductFilter(type)}
+                className="shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold transition-all"
+                style={active
+                  ? { backgroundColor: meta.color, color: "#fff", borderColor: meta.color }
+                  : { backgroundColor: meta.bg, color: meta.color, borderColor: `${meta.color}33` }}
+              >
+                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: active ? "#fff" : meta.color }} />
+                {meta.short}
+                <span className="px-1.5 py-0.5 rounded-full text-[10px]" style={{ backgroundColor: active ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.7)" }}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+        <div className="xl:col-span-2 bg-card rounded-2xl border border-border overflow-hidden" style={{ height: 420 }}>
+          <FleetTrackingMap
+            trucks={filtered}
+            selectedId={sel?.id ?? null}
+            onSelect={t => setSel(t)}
+            productMeta={productClassificationMeta}
+          />
+        </div>
+
+        <div className="bg-card rounded-2xl border border-border flex flex-col overflow-hidden">
+          <div className="px-4 py-3 border-b border-border">
+            <h3 className="text-sm font-bold text-foreground" style={{ fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
+              Camions triés par marchandise
+            </h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Cliquez pour localiser sur la carte</p>
+          </div>
+          {sel && sel.productType && (
+            <div className="px-4 py-3 border-b border-border bg-secondary/40">
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-bold text-xs">{sel.id}</span>
+                <button onClick={() => setSel(null)} className="p-0.5 hover:bg-muted rounded text-muted-foreground"><X size={12} /></button>
+              </div>
+              <span
+                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                style={{ color: productClassificationMeta[sel.productType].color, backgroundColor: productClassificationMeta[sel.productType].bg }}
+              >
+                <Package size={10} /> {sel.productType}
+              </span>
+              <p className="text-xs font-semibold text-foreground mt-2">{sel.driver}</p>
+              <p className="text-xs text-muted-foreground">{sel.route} · {sel.km} km</p>
+              <div className="mt-2"><FuelBar value={sel.fuel} /></div>
+            </div>
+          )}
+          <div className="flex-1 overflow-y-auto p-3 space-y-2 max-h-[420px]" style={{ scrollbarWidth: "thin" }}>
+            {filtered.length === 0 ? (
+              <div className="text-center py-10 text-sm text-muted-foreground">
+                Aucune livraison active pour cette classification.
+              </div>
+            ) : (
+              [...filtered]
+                .sort((a, b) => (a.productType || "").localeCompare(b.productType || ""))
+                .map(t => {
+                  const meta = t.productType ? productClassificationMeta[t.productType] : productClassificationMeta.Autre;
+                  return (
+                    <button
+                      key={t.id}
+                      onClick={() => setSel(t)}
+                      className="w-full text-left rounded-xl border border-border p-3 hover:shadow-sm transition-all"
+                      style={{ borderLeft: `4px solid ${meta.color}`, backgroundColor: sel?.id === t.id ? meta.bg : undefined }}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-mono text-[11px] text-muted-foreground">{t.id}</span>
+                            <span
+                              className="text-[10px] px-2 py-0.5 rounded-full font-semibold truncate max-w-[160px]"
+                              style={{ color: meta.color, backgroundColor: meta.bg }}
+                            >
+                              {t.productType}
+                            </span>
+                          </div>
+                          <p className="text-sm font-semibold text-foreground mt-1 truncate">{t.driver}</p>
+                          <p className="text-xs text-muted-foreground truncate">{t.route}</p>
+                        </div>
+                        <StatusBadge status={t.status} />
+                      </div>
+                      <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
+                        <span>{t.plate}</span>
+                        <span>{t.km} km</span>
+                      </div>
+                    </button>
+                  );
+                })
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        {productTypes.map(type => {
+          const meta = productClassificationMeta[type];
+          const count = counts[type];
+          return (
+            <button
+              key={type}
+              onClick={() => setProductFilter(type)}
+              className="rounded-xl border p-3 text-left transition-all hover:shadow-sm"
+              style={{
+                borderColor: productFilter === type ? meta.color : "var(--border)",
+                backgroundColor: productFilter === type ? meta.bg : "#fff",
+              }}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: meta.color }} />
+                <span className="text-[11px] font-bold truncate" style={{ color: meta.color }}>{meta.short}</span>
+              </div>
+              <p className="text-2xl font-bold text-foreground">{count}</p>
+              <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2">{type}</p>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════
    ADMIN — WORLD MAP
 ══════════════════════════════════════════ */
 function CarteSection() {
@@ -1597,6 +1825,7 @@ function MarketingSection() {
 const navItems:[AdminSection,string,React.ComponentType<{size?:number}>][]=[
   ["dashboard","Tableau de bord",BarChart3],
   ["carte","Carte mondiale",Map],
+  ["suivi","Suivi flotte",Filter],
   ["demandes","Demandes clients",FileText],
   ["fleet","Flotte",Truck],
   ["routes","Itinéraires",Navigation],
@@ -1609,7 +1838,7 @@ function AdminLayout({onLogout}:{onLogout:()=>void}) {
   const [section,setSection]=useState<AdminSection>("dashboard");
   const [open,setOpen]=useState(true);
   const sectionMap:Record<AdminSection,React.ReactNode>={
-    dashboard:<DashboardSection/>,carte:<CarteSection/>,demandes:<DemandesSection/>,
+    dashboard:<DashboardSection/>,carte:<CarteSection/>,suivi:<FleetTrackingSection/>,demandes:<DemandesSection/>,
     fleet:<FleetSection/>,routes:<RoutesSection/>,drivers:<DriversSection/>,
     expenses:<ExpensesSection/>,marketing:<MarketingSection/>,
   };
