@@ -1,6 +1,6 @@
 # =============================================================================
-# GitHub Actions — Continuous Integration (fast feedback)
-# Scope: compile, unit tests, SonarQube quality gate on PRs and main.
+# GitHub Actions — Continuous Integration (full repository)
+# Validates backend (app/), frontend (PorTransLine/), and infra configs.
 # Does NOT deploy. On main success, triggers Jenkins CD pipeline.
 # =============================================================================
 name: CI - Build, Test & Quality Gate
@@ -10,13 +10,15 @@ on:
     branches: [main]
   push:
     branches: [main]
+  workflow_dispatch:
 
 env:
   IMAGE: ghcr.io/truck-manager-tp/truck-fleet
   JIRA_PROJECT_KEY: KAN
 
 jobs:
-  build-test-scan:
+  backend-build-test-scan:
+    name: Backend (Spring Boot + SonarQube)
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -77,8 +79,50 @@ jobs:
           fi
           bash jenkins/scripts/create-jira-bug.sh sonarqube "${{ github.ref_name }}" "${{ github.sha }}"
 
+  frontend-build:
+    name: Frontend (PorTransLine / Vite)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: PorTransLine/package-lock.json
+
+      - name: Install dependencies
+        working-directory: PorTransLine
+        run: npm ci
+
+      - name: Production build
+        working-directory: PorTransLine
+        run: npm run build
+
+  infra-validate:
+    name: Infra configs (Docker Compose + K8s)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate Docker Compose stacks
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.dev.yml config -q
+          docker compose -f docker-compose.yml -f docker-compose.uat.yml config -q
+          docker compose -f docker-compose.yml -f docker-compose.prod.yml config -q
+          docker compose -f docker-compose.sonar-scan.yml config -q
+
+      - uses: imranismail/setup-kustomize@v2
+
+      - name: Validate Kustomize overlays
+        run: |
+          kustomize build k8s/overlays/dev
+          kustomize build k8s/overlays/uat
+          kustomize build k8s/overlays/prod
+
   trigger-jenkins-cd:
-    needs: build-test-scan
+    name: Trigger Jenkins CD
+    needs: [backend-build-test-scan, frontend-build, infra-validate]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
