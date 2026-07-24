@@ -1,10 +1,10 @@
 # =============================================================================
-# TP-Truck | Full DevOps environment - each tool in its own dedicated container
-# -----------------------------------------------------------------------------
-# Base stack. Compose the environment-specific overrides on top:
+# TP-Truck | Standardized DevOps stack
+# Allowed toolchain: Maven, Docker, SonarQube, Grafana (+ Prometheus datasource, Postgres, Redis, Flyway)
 #   DEV : docker compose -f docker-compose.yml -f docker-compose.dev.yml  up -d
 #   UAT : docker compose -f docker-compose.yml -f docker-compose.uat.yml  up -d
 #   PROD: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# CD/deploy: Jenkins -> Argo CD (k8s/overlays/*)
 # =============================================================================
 
 name: tp-truck
@@ -21,11 +21,9 @@ volumes:
   sonarqube-logs:
   grafana-data:
   prometheus-data:
-  jmeter-results:
 
 services:
 
-  # ---- Datastore -----------------------------------------------------------
   postgres:
     build:
       context: ./docker/postgres
@@ -39,7 +37,6 @@ services:
     networks: [tptruck-net]
     restart: unless-stopped
 
-  # ---- Database migrations (runs to completion, then exits) ----------------
   flyway:
     build:
       context: ./docker/flyway
@@ -52,9 +49,8 @@ services:
       postgres:
         condition: service_healthy
     networks: [tptruck-net]
-    restart: on-failure
+    restart: "no"
 
-  # ---- Real-time position cache (map tracking) -----------------------------
   redis:
     image: redis:7-alpine
     volumes:
@@ -67,7 +63,6 @@ services:
       timeout: 3s
       retries: 5
 
-  # ---- Application ---------------------------------------------------------
   app:
     build:
       context: ./app
@@ -91,7 +86,6 @@ services:
     networks: [tptruck-net]
     restart: unless-stopped
 
-  # ---- Static analysis / quality gate --------------------------------------
   sonarqube:
     build:
       context: ./docker/sonarqube
@@ -105,7 +99,6 @@ services:
     networks: [tptruck-net]
     restart: unless-stopped
 
-  # ---- SonarQube -> Prometheus metrics bridge ------------------------------
   sonarqube-exporter:
     build:
       context: ./docker/sonarqube-exporter
@@ -120,7 +113,6 @@ services:
     networks: [tptruck-net]
     restart: unless-stopped
 
-  # ---- Grafana alert -> Jira Bug bridge (SonarQube incidents) --------------
   jira-bridge:
     build:
       context: ./docker/jira-bridge
@@ -129,13 +121,12 @@ services:
       JIRA_BASE_URL: ${JIRA_BASE_URL:-https://example.atlassian.net}
       JIRA_EMAIL: ${JIRA_EMAIL:-}
       JIRA_API_TOKEN: ${JIRA_API_TOKEN:-}
-      JIRA_PROJECT_KEY: ${JIRA_PROJECT_KEY:-TPT}
+      JIRA_PROJECT_KEY: ${JIRA_PROJECT_KEY:-KAN}
       JIRA_ISSUE_TYPE: ${JIRA_ISSUE_TYPE:-Bug}
       DEDUP_ENABLED: "true"
     networks: [tptruck-net]
     restart: unless-stopped
 
-  # ---- Metrics -------------------------------------------------------------
   prometheus:
     build:
       context: ./docker/prometheus
@@ -148,7 +139,6 @@ services:
     networks: [tptruck-net]
     restart: unless-stopped
 
-  # ---- Dashboards ----------------------------------------------------------
   grafana:
     build:
       context: ./docker/grafana
@@ -161,16 +151,3 @@ services:
     depends_on: [prometheus, jira-bridge]
     networks: [tptruck-net]
     restart: unless-stopped
-
-  # ---- Performance testing (profile: perf - run on demand) -----------------
-  jmeter:
-    build:
-      context: ./docker/jmeter
-    image: tptruck/jmeter:1.0.0
-    profiles: ["perf"]
-    environment:
-      APP_ENV: ${APP_ENV:-dev}
-    volumes:
-      - jmeter-results:/tests/results
-    depends_on: [app]
-    networks: [tptruck-net]

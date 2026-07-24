@@ -1,4 +1,4 @@
-# UAT override: production-like, only the app + observability are exposed.
+# UAT override: production-like resource limits + observability exposed.
 services:
   app:
     environment:
@@ -13,6 +13,7 @@ services:
     ports: ["3000:3000"]
   prometheus:
     ports: ["9090:9090"]
-  # SonarQube is not part of the UAT runtime footprint.
   sonarqube:
+    profiles: ["disabled"]
+  sonarqube-exporter:
     profiles: ["disabled"]

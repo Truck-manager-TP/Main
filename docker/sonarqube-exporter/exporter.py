@@ -114,6 +114,8 @@ def main() -> None:
     thread = threading.Thread(target=_poll_loop, daemon=True)
     thread.start()
     start_http_server(EXPORTER_PORT)
+    # start_http_server returns immediately; keep the process alive for Docker.
+    thread.join()
 
 
 if __name__ == "__main__":

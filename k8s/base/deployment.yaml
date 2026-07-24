@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: truck-fleet
-          image: tptruck/truck-fleet:1.0.0
+          image: ghcr.io/truck-manager-tp/truck-fleet:1.0.0
           ports:
             - containerPort: 8080
           envFrom:

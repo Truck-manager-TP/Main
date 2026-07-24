@@ -15,9 +15,7 @@ spec:
     server: https://kubernetes.default.svc
     namespace: tp-truck-prod
   syncPolicy:
-    # PROD is intentionally MANUAL sync: Argo detects OutOfSync after the
-    # promotion commit, but the actual sync is triggered by Digital.ai Release
-    # only after the ServiceNow Change ticket is Approved.
+    # PROD is MANUAL sync: Jenkins triggers sync only after ServiceNow CAB approval.
     syncOptions:
       - CreateNamespace=true
   revisionHistoryLimit: 10

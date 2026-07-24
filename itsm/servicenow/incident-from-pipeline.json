@@ -1,0 +1,12 @@
+{
+  "_comment": "ServiceNow Incident payload — raised by Jenkins on pipeline or Argo CD sync failure.",
+  "short_description": "[{{ severity }}] {{ source }} failure on TP-Truck {{ environment }}",
+  "description": "{{ summary }}\n\n{{ details }}\n\nJenkins build: {{ buildUrl }}\nArgo CD app: {{ argocdApp }}\nGit SHA: {{ gitSha }}",
+  "urgency": "2",
+  "impact": "2",
+  "category": "Software",
+  "cmdb_ci": "tp-truck-fleet",
+  "assignment_group": "Platform DevOps",
+  "u_source": "jenkins",
+  "correlation_id": "{{ correlationId }}"
+}

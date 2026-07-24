@@ -1,16 +1,18 @@
 {
-  "_comment": "ServiceNow DevOps Config governance: maps pipeline artifacts to CMDB CIs so every deploy is traceable to a Change and every alert to a CI.",
+  "_comment": "ServiceNow DevOps Config — maps Jenkins/Argo CD pipeline artifacts to CMDB CIs.",
   "application_service": "TP-Truck Fleet & Logistics",
   "business_criticality": "1 - most critical",
   "configuration_items": [
-    { "name": "tp-truck-fleet",     "class": "cmdb_ci_app_server", "environment": ["dev", "uat", "prod"] },
-    { "name": "tp-truck-postgres",  "class": "cmdb_ci_db_instance", "environment": ["dev", "uat", "prod"] }
+    { "name": "tp-truck-fleet",    "class": "cmdb_ci_app_server",  "environment": ["dev", "uat", "prod"] },
+    { "name": "tp-truck-postgres", "class": "cmdb_ci_db_instance", "environment": ["dev", "uat", "prod"] }
   ],
   "devops_tool_integrations": [
-    { "tool": "digitalai-release", "capability": "orchestration" },
-    { "tool": "argocd",            "capability": "deployment" },
-    { "tool": "sonarqube",         "capability": "code-quality" },
-    { "tool": "terraform",         "capability": "iac", "policy": "plan-attached-to-change" }
+    { "tool": "github-actions", "capability": "ci",           "policy": "pr-quality-gate" },
+    { "tool": "jenkins",        "capability": "cd",           "policy": "promotion-orchestration" },
+    { "tool": "argocd",         "capability": "deployment",   "policy": "gitops-sync" },
+    { "tool": "sonarqube",      "capability": "code-quality", "policy": "gate-blocks-promotion" },
+    { "tool": "grafana",        "capability": "observability","policy": "alert-to-servicenow-jira" },
+    { "tool": "docker",         "capability": "packaging",    "policy": "immutable-artifacts" }
   ],
   "change_governance": {
     "dev":  { "change_required": false, "auto_approve": true },

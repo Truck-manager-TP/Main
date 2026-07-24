@@ -1,0 +1,12 @@
+Issue Type,Epic Name,Summary,Component,Story Points,Assignee,Sprint,Status
+Story,OBSERVE,Provision Grafana + Prometheus in docker-compose,Observability,3,Adam Nouman,Sprint 3,To Do
+Story,OBSERVE,Import fleet overview dashboard (truck-fleet-overview.json),Observability,2,Adam Nouman,Sprint 3,To Do
+Story,OBSERVE,Import live map tracking dashboard (map-tracking.json),Observability,3,Wissal Benchakroun,Sprint 3,To Do
+Story,OBSERVE,Configure Grafana alert rules for app SLOs (latency 5xx downtime),Observability,5,Adam Nouman,Sprint 3,To Do
+Story,OBSERVE,Configure Grafana SonarQube quality gate alert rules,Observability,3,Wissal Benchakroun,Sprint 3,To Do
+Story,OBSERVE,Wire Grafana contact point to ServiceNow webhook,Observability,2,Douae Karachi,Sprint 3,To Do
+Story,OBSERVE,Wire Grafana SonarQube alerts to Jira via jira-bridge,Observability,3,Wissal Benchakroun,Sprint 3,To Do
+Story,OBSERVE,Deploy sonarqube-exporter and verify Prometheus scrape,Observability,2,Adam Nouman,Sprint 3,To Do
+Story,OBSERVE,Validate Micrometer /actuator/prometheus metrics from app,Observability,2,Dounia Beslem,Sprint 3,To Do
+Story,OBSERVE,UAT/PROD Grafana access + dashboard smoke test post-deploy,Observability,2,Dounia Beslem,Sprint 4,To Do
+Story,OBSERVE,Jira Automation: Grafana alert label creates linked Bug,Observability,2,Adam Nouman,Sprint 4,To Do

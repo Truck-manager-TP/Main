@@ -1,21 +1,18 @@
-# Jira <-> DevOps toolchain automation
+# Jira <-> DevOps toolchain automation (KAN project)
 
-The Jira issue key (e.g. `TPT-142`) is the golden thread that stitches every
-tool together. Automation rules (Jira Automation) and smart commits keep the
-board in sync with reality with zero manual status changes.
+| Trigger (tool)                              | Action in Jira / ServiceNow                      |
+|---------------------------------------------|--------------------------------------------------|
+| Branch `feature/KAN-*` created              | Story -> **In Progress**                         |
+| PR opened referencing `KAN-*`               | Story -> **In Review**                           |
+| SonarQube gate **failed** (GitHub Actions)  | Auto-creates **Bug**; Story -> **Blocked**       |
+| SonarQube gate **failed** (Grafana alert)   | Auto-creates **Bug** via jira-bridge             |
+| Jenkins build **failed**                    | Auto-creates **Bug** + ServiceNow Incident       |
+| Argo CD sync **failed**                     | Auto-creates **Bug** + ServiceNow Incident       |
+| Grafana P1 alert (app down, 5xx)            | ServiceNow Incident + linked Jira Bug            |
+| Jenkins deploys to UAT                      | Story -> **In UAT**                              |
+| ServiceNow PROD change **Closed OK**        | Story -> **Done**                                |
 
-| Trigger (tool)                         | Action in Jira                                   |
-|----------------------------------------|--------------------------------------------------|
-| Branch `feature/TPT-142-*` created     | Story -> **In Progress**                         |
-| Commit `TPT-142 #comment ...`          | Comment mirrored onto the story (smart commit)   |
-| PR opened referencing `TPT-142`        | Story -> **In Review**                           |
-| SonarQube quality gate **passed**      | Adds `sonar:passed` label                         |
-| SonarQube quality gate **failed** (Grafana alert) | Auto-creates **Bug** with label `sonarqube`      |
-| SonarQube quality gate **failed** (CI)            | Story -> **Blocked**, flags the PR               |
-| Digital.ai Release deploys to UAT      | Story -> **In UAT**                              |
-| ServiceNow PROD change **Closed OK**   | Story -> **Done**, `released/1.0.0` fix version  |
-| Grafana raises P1 -> ServiceNow inc.   | Auto-creates linked **Bug** in the same epic     |
-
-Digital.ai Agility (the SAFe/portfolio layer) rolls these Jira epics up into
-program increments so leadership sees TTM at the portfolio level while teams
-work day-to-day in Jira.
+Payload templates:
+- `itsm/jira/incident-from-grafana.json`
+- `itsm/jira/incident-from-sonarqube.json`
+- `itsm/servicenow/incident-from-grafana.json`

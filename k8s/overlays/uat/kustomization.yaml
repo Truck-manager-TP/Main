@@ -5,7 +5,7 @@ resources:
   - ../../base
 
 images:
-  - name: tptruck/truck-fleet
+  - name: ghcr.io/truck-manager-tp/truck-fleet
     newTag: 1.0.0
 
 patches:
