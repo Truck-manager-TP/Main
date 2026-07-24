@@ -22,6 +22,7 @@ volumes:
   grafana-data:
   prometheus-data:
   jmeter-results:
+  jenkins-data:
 
 services:
 
@@ -143,3 +144,25 @@ services:
       - jmeter-results:/tests/results
     depends_on: [app]
     networks: [tptruck-net]
+
+  # ---- CI/CD orchestrator ---------------------------------------------------
+  jenkins:
+    build:
+      context: ./docker/jenkins
+    image: tptruck/jenkins:1.0.0
+    user: root
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks: [tptruck-net]
+    restart: unless-stopped
+
+  # ---- Front-office portals (PorTransLine : admin / driver / client) --------
+  portransline:
+    build:
+      context: ./PorTransLine
+    image: tptruck/portransline:1.0.0
+    depends_on:
+      - app
+    networks: [tptruck-net]
+    restart: unless-stopped

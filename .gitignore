@@ -26,3 +26,6 @@ docker/jmeter/results/
 # OS
 .DS_Store
 Thumbs.db
+build.log
+ptl-build.log
+*.log

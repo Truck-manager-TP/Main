@@ -12,3 +12,8 @@ services:
     ports: ["9090:9090"]
   grafana:
     ports: ["3000:3000"]
+  jenkins:
+    # 8080 is already taken by the app, so Jenkins' web UI moves to 8081.
+    ports: ["8081:8080", "50000:50000"]
+  portransline:
+    ports: ["3001:80"]

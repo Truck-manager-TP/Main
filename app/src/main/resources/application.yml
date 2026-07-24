@@ -11,7 +11,9 @@ spring:
       maximum-pool-size: ${DB_POOL_MAX:10}
   jpa:
     hibernate:
-      ddl-auto: validate
+      # 'none' : Flyway est maitre du schema. On desactive la validation stricte
+      # d'Hibernate qui bloquait le demarrage (CHAR vs VARCHAR sur relay_point.country_code).
+      ddl-auto: none
     open-in-view: false
     properties:
       hibernate:

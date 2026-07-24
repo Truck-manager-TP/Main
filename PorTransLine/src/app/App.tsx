@@ -1,5 +1,6 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import FleetTrackingMap from "./components/FleetTrackingMap";
+import { fetchTrucks } from "./api";
 import {
   Truck, MapPin, Users, BarChart3, Bell, ChevronRight,
   TrendingUp, AlertTriangle, Clock, Fuel, Wrench,
@@ -1338,6 +1339,14 @@ function CarteSection() {
 ══════════════════════════════════════════ */
 function FleetSection() {
   const [fleet,setFleet]=useState(fleetDataInit.map(t=>({...t})));
+  const [live,setLive]=useState(false);
+  useEffect(()=>{
+    let alive=true;
+    fetchTrucks(fleetDataInit)
+      .then(real=>{ if(alive&&real.length){ setFleet(real); setLive(true); } })
+      .catch(()=>{});   // en cas d'echec API : on garde les donnees mockees
+    return ()=>{ alive=false; };
+  },[]);
   const [search,setSearch]=useState("");
   const [assigning,setAssigning]=useState<typeof fleet[0]|null>(null);
   const [picked,setPicked]=useState("");
@@ -1398,6 +1407,7 @@ function FleetSection() {
         <div>
           <h1 className="text-xl font-bold text-foreground" style={{fontFamily:"'Plus Jakarta Sans',sans-serif"}}>Gestion de la flotte</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{fleet.length} camions · {fleet.filter(t=>t.driverId).length} assignés · {fleet.filter(t=>!t.driverId).length} sans conducteur</p>
+          {live&&<span className="inline-flex items-center gap-1 text-xs font-bold mt-1" style={{color:"#10B981"}}>● Données en direct de PostgreSQL (via l'API)</span>}
         </div>
         <div className="relative">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
