@@ -1,10 +1,10 @@
 # =============================================================================
-# TP-Truck | Full DevOps environment - each tool in its own dedicated container
-# -----------------------------------------------------------------------------
-# Base stack. Compose the environment-specific overrides on top:
+# TP-Truck | Standardized DevOps stack
+# Allowed toolchain: Maven, Docker, SonarQube, Grafana (+ Prometheus datasource, Postgres, Redis, Flyway)
 #   DEV : docker compose -f docker-compose.yml -f docker-compose.dev.yml  up -d
 #   UAT : docker compose -f docker-compose.yml -f docker-compose.uat.yml  up -d
 #   PROD: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# CD/deploy: Jenkins -> Argo CD (k8s/overlays/*)
 # =============================================================================
 
 name: tp-truck
@@ -26,7 +26,6 @@ volumes:
 
 services:
 
-  # ---- Datastore -----------------------------------------------------------
   postgres:
     build:
       context: ./docker/postgres
@@ -40,7 +39,6 @@ services:
     networks: [tptruck-net]
     restart: unless-stopped
 
-  # ---- Database migrations (runs to completion, then exits) ----------------
   flyway:
     build:
       context: ./docker/flyway
@@ -53,9 +51,8 @@ services:
       postgres:
         condition: service_healthy
     networks: [tptruck-net]
-    restart: on-failure
+    restart: "no"
 
-  # ---- Real-time position cache (map tracking) -----------------------------
   redis:
     image: redis:7-alpine
     volumes:
@@ -68,7 +65,6 @@ services:
       timeout: 3s
       retries: 5
 
-  # ---- Application ---------------------------------------------------------
   app:
     build:
       context: ./app
@@ -92,7 +88,6 @@ services:
     networks: [tptruck-net]
     restart: unless-stopped
 
-  # ---- Static analysis / quality gate --------------------------------------
   sonarqube:
     build:
       context: ./docker/sonarqube
@@ -106,7 +101,34 @@ services:
     networks: [tptruck-net]
     restart: unless-stopped
 
-  # ---- Metrics -------------------------------------------------------------
+  sonarqube-exporter:
+    build:
+      context: ./docker/sonarqube-exporter
+    image: tptruck/sonarqube-exporter:1.0.0
+    environment:
+      SONAR_HOST: http://sonarqube:9000
+      SONAR_TOKEN: ${SONAR_TOKEN:-}
+      SONAR_PROJECT_KEY: tptruck-fleet
+      SCRAPE_INTERVAL_SECONDS: 60
+      EXPORTER_PORT: 8190
+    depends_on: [sonarqube]
+    networks: [tptruck-net]
+    restart: unless-stopped
+
+  jira-bridge:
+    build:
+      context: ./docker/jira-bridge
+    image: tptruck/jira-bridge:1.0.0
+    environment:
+      JIRA_BASE_URL: ${JIRA_BASE_URL:-https://example.atlassian.net}
+      JIRA_EMAIL: ${JIRA_EMAIL:-}
+      JIRA_API_TOKEN: ${JIRA_API_TOKEN:-}
+      JIRA_PROJECT_KEY: ${JIRA_PROJECT_KEY:-KAN}
+      JIRA_ISSUE_TYPE: ${JIRA_ISSUE_TYPE:-Bug}
+      DEDUP_ENABLED: "true"
+    networks: [tptruck-net]
+    restart: unless-stopped
+
   prometheus:
     build:
       context: ./docker/prometheus
@@ -115,20 +137,20 @@ services:
       APP_ENV: ${APP_ENV:-dev}
     volumes:
       - prometheus-data:/prometheus
-    depends_on: [app]
+    depends_on: [app, sonarqube-exporter]
     networks: [tptruck-net]
     restart: unless-stopped
 
-  # ---- Dashboards ----------------------------------------------------------
   grafana:
     build:
       context: ./docker/grafana
     image: tptruck/grafana:1.0.0
     environment:
       SERVICENOW_WEBHOOK_URL: ${SERVICENOW_WEBHOOK_URL:-http://localhost/mock-servicenow}
+      JIRA_BRIDGE_URL: ${JIRA_BRIDGE_URL:-http://jira-bridge:8090/webhooks/grafana}
     volumes:
       - grafana-data:/var/lib/grafana
-    depends_on: [prometheus]
+    depends_on: [prometheus, jira-bridge]
     networks: [tptruck-net]
     restart: unless-stopped
 

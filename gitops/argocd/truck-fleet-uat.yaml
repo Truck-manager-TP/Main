@@ -15,8 +15,7 @@ spec:
     server: https://kubernetes.default.svc
     namespace: tp-truck-uat
   syncPolicy:
-    # UAT syncs automatically but only after DEV is green; promotion is a
-    # Digital.ai Release task that bumps the image tag via a Git commit.
+    # UAT syncs after Jenkins promotes the image tag via Git commit to k8s/overlays/uat.
     automated:
       prune: true
       selfHeal: false

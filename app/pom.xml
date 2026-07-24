@@ -64,7 +64,7 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Prometheus metrics for Grafana observability -->
+        <!-- Prometheus metrics for Grafana dashboards -->
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>

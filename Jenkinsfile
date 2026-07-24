@@ -1,31 +1,26 @@
-// TP-Truck CI/CD pipeline: Jenkins runs alongside the existing GitHub Actions
-// workflow (.github/workflows/ci.yml) as a containerized orchestrator that
-// also opens a ServiceNow Change before deploying to DEV.
-//
-// Prereqs (see docs/CI_JENKINS_SERVICENOW.md for the full manual setup):
-//   - Jenkins plugins: Maven Integration, Docker Pipeline, SonarQube Scanner,
-//     ServiceNow DevOps
-//   - Manage Jenkins > Tools: JDK installation named 'jdk17', Maven
-//     installation named 'maven3'
-//   - Manage Jenkins > System: SonarQube server named 'SonarQube'
-//     (http://sonarqube:9000) + a ServiceNow DevOps tool integration
-//   - SonarQube webhook -> http://jenkins:8080/sonarqube-webhook/ so
-//     waitForQualityGate can receive the callback
+// =============================================================================
+// TP-Truck — Jenkins CD Pipeline (Continuous Delivery / Deployment)
+// Triggered by GitHub Actions after CI passes on main.
+// Scope: Docker build/push, ServiceNow change governance, Argo CD GitOps sync.
+// =============================================================================
+
 pipeline {
     agent any
 
-    tools {
-        jdk 'jdk17'
-        maven 'maven3'
+    parameters {
+        string(name: 'GIT_SHA',       defaultValue: 'main', description: 'Git commit SHA from CI')
+        string(name: 'GIT_BRANCH',   defaultValue: 'main', description: 'Source branch')
+        string(name: 'IMAGE_TAG',     defaultValue: '1.0.0', description: 'Docker image tag')
+        string(name: 'VERSION',        defaultValue: '1.0.0', description: 'Release version')
+        choice(name: 'TARGET_ENV',     choices: ['dev', 'uat', 'prod'], description: 'Promotion target')
     }
 
     environment {
-        IMAGE = 'tptruck/truck-fleet'
-    }
-
-    options {
-        timestamps()
-        disableConcurrentBuilds()
+        IMAGE_REPO     = 'ghcr.io/truck-manager-tp/truck-fleet'
+        SONAR_PROJECT  = 'tptruck-fleet'
+        JIRA_PROJECT   = 'KAN'
+        ARGOCD_SERVER  = credentials('argocd-server-url')
+        ARGOCD_TOKEN   = credentials('argocd-auth-token')
     }
 
     stages {
@@ -33,99 +28,98 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
+                sh "git checkout ${params.GIT_SHA} || git checkout ${params.GIT_BRANCH}"
             }
         }
 
-        stage('Build & Test (Maven)') {
+        stage('Build & Quality (safety net)') {
             steps {
                 dir('app') {
                     sh 'mvn -B clean verify'
-                }
-            }
-            post {
-                always {
-                    junit testResults: 'app/target/surefire-reports/*.xml', allowEmptyResults: true
-                }
-            }
-        }
-
-        stage('SonarQube') {
-            steps {
-                dir('app') {
-                    withSonarQubeEnv('SonarQube') {
-                        sh 'mvn -B sonar:sonar -Dsonar.host.url=http://sonarqube:9000 -Dsonar.token=$SONAR_AUTH_TOKEN'
+                    withCredentials([
+                        string(credentialsId: 'sonar-token',     variable: 'SONAR_TOKEN'),
+                        string(credentialsId: 'sonar-host-url', variable: 'SONAR_HOST_URL')
+                    ]) {
+                        sh '''
+                          mvn -B sonar:sonar \
+                            -Dsonar.host.url=$SONAR_HOST_URL \
+                            -Dsonar.token=$SONAR_TOKEN \
+                            -Dsonar.qualitygate.wait=true
+                        '''
                     }
                 }
             }
         }
 
-        stage('Quality Gate') {
+        stage('Docker Build & Push') {
             steps {
-                // Blocks here until SonarQube calls back the webhook above.
-                timeout(time: 5, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
+                withCredentials([string(credentialsId: 'ghcr-token', variable: 'GHCR_TOKEN')]) {
+                    sh '''
+                      echo "$GHCR_TOKEN" | docker login ghcr.io -u $BUILD_USER_ID --password-stdin
+                      docker build -t $IMAGE_REPO:$IMAGE_TAG -t $IMAGE_REPO:$VERSION ./app
+                      docker push $IMAGE_REPO:$IMAGE_TAG
+                      docker push $IMAGE_REPO:$VERSION
+                    '''
                 }
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-                // Tag with 1.0.0 too so it matches docker-compose.yml's
-                // "image: tptruck/truck-fleet:${APP_VERSION:-1.0.0}" and gets
-                // picked up as-is (no rebuild) by the Deploy DEV stage below.
-                sh "docker build -t ${IMAGE}:${BUILD_NUMBER} -t ${IMAGE}:1.0.0 ./app"
-            }
-        }
-
-        stage('ServiceNow Change') {
-            when { branch 'main' }
-            steps {
-                snDevOpsChange(
-                    applicationName: 'TP-Truck',
-                    changeRequestDetails: """{
-                        "short_description": "Promote TP-Truck Fleet build #${env.BUILD_NUMBER} to DEV",
-                        "description": "Automated change opened by Jenkins pipeline ${env.BUILD_URL}",
-                        "cmdb_ci": "tp-truck-fleet",
-                        "justification": "Passed Maven build/tests and the SonarQube quality gate."
-                    }"""
-                )
-
-                /*
-                 * Fallback if the "ServiceNow DevOps" plugin is not
-                 * installed: open the Change Request directly via the Table
-                 * API, reusing the same payload shape as
-                 * itsm/servicenow/change-request.json. Requires a Jenkins
-                 * 'usernamePassword' credential (id: servicenow-creds) and a
-                 * SN_INSTANCE_URL value (e.g. env var or a second credential).
-                 *
-                 * withCredentials([usernamePassword(credentialsId: 'servicenow-creds',
-                 *                                    usernameVariable: 'SN_USER',
-                 *                                    passwordVariable: 'SN_PASS')]) {
-                 *     sh '''
-                 *         curl -fsS -X POST "$SN_INSTANCE_URL/api/now/table/change_request" \\
-                 *              -u "$SN_USER:$SN_PASS" \\
-                 *              -H "Content-Type: application/json" \\
-                 *              -d @itsm/servicenow/change-request.json
-                 *     '''
-                 * }
-                 */
-            }
-        }
-
         stage('Deploy DEV') {
-            when { branch 'main' }
+            when { expression { params.TARGET_ENV == 'dev' } }
             steps {
-                sh 'docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d'
+                sh """
+                  bash jenkins/scripts/promote-overlay.sh dev ${params.IMAGE_TAG}
+                  bash jenkins/scripts/argocd-sync.sh truck-fleet-dev
+                """
+            }
+        }
+
+        stage('Deploy UAT') {
+            when { expression { params.TARGET_ENV == 'uat' } }
+            steps {
+                script {
+                    def cr = sh(
+                        script: "bash jenkins/scripts/create-servicenow-change.sh uat ${params.VERSION} ${params.IMAGE_TAG}",
+                        returnStdout: true
+                    ).trim()
+                    echo "ServiceNow Change: ${cr}"
+                }
+                sh """
+                  bash jenkins/scripts/promote-overlay.sh uat ${params.IMAGE_TAG}
+                  bash jenkins/scripts/argocd-sync.sh truck-fleet-uat
+                """
+                input message: 'UAT sign-off — promote to PROD?', ok: 'Approved'
+            }
+        }
+
+        stage('Deploy PROD') {
+            when { expression { params.TARGET_ENV == 'prod' } }
+            steps {
+                script {
+                    def cr = sh(
+                        script: "bash jenkins/scripts/create-servicenow-change.sh prod ${params.VERSION} ${params.IMAGE_TAG}",
+                        returnStdout: true
+                    ).trim()
+                    input message: "CAB approval required for Change ${cr}", ok: 'CAB Approved'
+                }
+                sh """
+                  bash jenkins/scripts/promote-overlay.sh prod ${params.IMAGE_TAG}
+                  bash jenkins/scripts/argocd-sync.sh truck-fleet-prod
+                """
+                sh 'curl -fsS http://truck-fleet.prod/actuator/health || true'
             }
         }
     }
 
     post {
-        success {
-            echo "Pipeline succeeded: ${env.BUILD_URL}"
-        }
         failure {
-            echo "Pipeline failed: ${env.BUILD_URL}"
+            sh """
+              bash jenkins/scripts/create-jira-bug.sh jenkins-build ${params.GIT_BRANCH} ${params.GIT_SHA} || true
+              bash jenkins/scripts/create-servicenow-incident.sh jenkins-build ${params.TARGET_ENV} || true
+            """
+        }
+        success {
+            echo "TP-Truck ${params.VERSION} promoted to ${params.TARGET_ENV}"
         }
     }
 }

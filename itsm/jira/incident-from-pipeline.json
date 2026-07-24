@@ -1,0 +1,11 @@
+{
+  "_comment": "Jira Bug payload — created by GitHub Actions or Jenkins on SonarQube gate / build failure.",
+  "fields": {
+    "project": { "key": "KAN" },
+    "issuetype": { "name": "Bug" },
+    "summary": "[{{ source }}] Pipeline failure — {{ branch }} ({{ gitSha }})",
+    "description": "h2. Automated pipeline failure\n\n*Source:* {{ source }}\n*Branch:* {{ branch }}\n*Commit:* {{ gitSha }}\n\n{{ details }}\n\n_Auto-created by TP-Truck CI/CD._",
+    "priority": { "name": "High" },
+    "labels": ["pipeline-failure", "auto-created", "{{ source }}"]
+  }
+}

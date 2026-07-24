@@ -13,6 +13,10 @@ UPDATE route SET
     destination_lat = 41.3851, destination_lng = 2.1734
 WHERE id = 2;
 
+-- Idempotent re-run: clear demo seed rows before inserting (safe for route 1 demo data only).
+DELETE FROM truck_location WHERE route_id = 1;
+DELETE FROM route_trajectory_point WHERE route_id = 1;
+
 INSERT INTO route_trajectory_point (route_id, seq, latitude, longitude, point_type, recorded_at) VALUES
     (1, 1, 33.5731, -7.5898, 'PLANNED', NULL),
     (1, 2, 34.0209, -6.8416, 'PLANNED', NULL),
