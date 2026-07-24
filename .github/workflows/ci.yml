@@ -1,13 +1,19 @@
-name: CI - Build, Quality & Package
+# =============================================================================
+# GitHub Actions — Continuous Integration (fast feedback)
+# Scope: compile, unit tests, SonarQube quality gate on PRs and main.
+# Does NOT deploy. On main success, triggers Jenkins CD pipeline.
+# =============================================================================
+name: CI - Build, Test & Quality Gate
 
 on:
-  push:
-    branches: [main]
   pull_request:
+    branches: [main]
+  push:
     branches: [main]
 
 env:
   IMAGE: ghcr.io/truck-manager-tp/truck-fleet
+  JIRA_PROJECT_KEY: KAN
 
 jobs:
   build-test-scan:
@@ -21,12 +27,14 @@ jobs:
           POSTGRES_PASSWORD: tptruck
         ports: ["5432:5432"]
         options: >-
-          --health-cmd "pg_isready -U tptruck" --health-interval 10s
-          --health-timeout 5s --health-retries 10
+          --health-cmd "pg_isready -U tptruck"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0            # full history for accurate Sonar new-code detection
+          fetch-depth: 0
 
       - uses: actions/setup-java@v4
         with:
@@ -34,11 +42,12 @@ jobs:
           java-version: "17"
           cache: maven
 
-      - name: Build, test & coverage
+      - name: Maven build, test & coverage
         working-directory: app
         run: mvn -B clean verify
 
-      - name: SonarQube scan + quality gate (blocks on failure)
+      - name: SonarQube scan + quality gate
+        id: sonar
         working-directory: app
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -49,22 +58,24 @@ jobs:
           -Dsonar.token=$SONAR_TOKEN
           -Dsonar.qualitygate.wait=true
 
-      - name: Build & push image (main only)
-        if: github.ref == 'refs/heads/main'
-        run: |
-          echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          docker build -t $IMAGE:${{ github.sha }} -t $IMAGE:1.0.0 ./app
-          docker push $IMAGE:${{ github.sha }}
-          docker push $IMAGE:1.0.0
+      - name: Create Jira Bug on Sonar gate failure
+        if: failure() && steps.sonar.outcome == 'failure'
+        env:
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+        run: bash jenkins/scripts/create-jira-bug.sh sonarqube "${{ github.ref_name }}" "${{ github.sha }}"
 
-  trigger-release:
+  trigger-jenkins-cd:
     needs: build-test-scan
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
-      - name: Kick off Digital.ai Release pipeline
+      - name: Trigger Jenkins CD pipeline
         run: |
-          curl -fsS -X POST "${{ secrets.DAI_RELEASE_URL }}/api/v1/templates/TP-Truck/start" \
-            -H "Authorization: Bearer ${{ secrets.DAI_RELEASE_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d '{"variables":{"version":"1.0.0","imageTag":"'"$IMAGE:${{ github.sha }}"'"}}'
+          curl -fsS -X POST "${{ secrets.JENKINS_URL }}/job/tp-truck-cd/buildWithParameters" \
+            --user "${{ secrets.JENKINS_USER }}:${{ secrets.JENKINS_TOKEN }}" \
+            --data-urlencode "GIT_SHA=${{ github.sha }}" \
+            --data-urlencode "GIT_BRANCH=main" \
+            --data-urlencode "IMAGE_TAG=${{ github.sha }}" \
+            --data-urlencode "VERSION=1.0.0"

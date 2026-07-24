@@ -1,4 +1,4 @@
-# DEV override: expose everything to the developer's localhost for fast feedback.
+# DEV override: expose app, SonarQube, Grafana, and Prometheus for local feedback.
 services:
   postgres:
     ports: ["5432:5432"]
@@ -8,6 +8,10 @@ services:
     ports: ["8080:8080"]
   sonarqube:
     ports: ["9000:9000"]
+  sonarqube-exporter:
+    ports: ["8190:8190"]
+  jira-bridge:
+    ports: ["8090:8090"]
   prometheus:
     ports: ["9090:9090"]
   grafana:

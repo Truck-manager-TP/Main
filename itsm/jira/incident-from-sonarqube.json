@@ -1,0 +1,11 @@
+{
+  "_comment": "Jira Bug payload — SonarQube quality gate failure (GitHub Actions CI).",
+  "fields": {
+    "project": { "key": "KAN" },
+    "issuetype": { "name": "Bug" },
+    "summary": "[SonarQube] Quality Gate FAILED — tptruck-fleet / {{ branch }}",
+    "description": "h2. SonarQube Quality Gate Failure\n\n*Project:* tptruck-fleet\n*Branch:* {{ branch }}\n*Commit:* {{ gitSha }}\n\nh3. Action required\nReview new code violations, security hotspots, and coverage before merging.\n\n_Auto-created by GitHub Actions CI._",
+    "priority": { "name": "High" },
+    "labels": ["sonarqube", "quality-gate", "auto-created"]
+  }
+}

@@ -2,6 +2,7 @@ apiVersion: 1
 
 # Grafana -> ServiceNow bridge: firing alerts POST to the ServiceNow
 # Event Management / Incident inbound webhook, closing the feedback loop.
+# SonarQube alerts route to the Jira bridge instead (Approach 2).
 contactPoints:
   - orgId: 1
     name: servicenow-incidents
@@ -13,11 +14,26 @@ contactPoints:
           httpMethod: POST
         disableResolveMessage: false
 
+  - orgId: 1
+    name: jira-sonarqube
+    receivers:
+      - uid: jira-webhook
+        type: webhook
+        settings:
+          url: ${JIRA_BRIDGE_URL}
+          httpMethod: POST
+        disableResolveMessage: true
+
 policies:
   - orgId: 1
     receiver: servicenow-incidents
     group_by: ['alertname', 'env']
     routes:
+      - receiver: jira-sonarqube
+        matchers:
+          - source = sonarqube
+          - jira = true
+        continue: false
       - receiver: servicenow-incidents
         matchers:
           - severity = critical

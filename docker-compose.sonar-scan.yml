@@ -1,0 +1,20 @@
+# One-shot local SonarQube analysis (no Maven install required).
+# Usage: docker compose -f docker-compose.sonar-scan.yml run --rm sonar-scan
+services:
+  sonar-scan:
+    image: maven:3.9-eclipse-temurin-17
+    working_dir: /workspace
+    volumes:
+      - ./app:/workspace
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command:
+      - mvn
+      - -B
+      - clean
+      - verify
+      - sonar:sonar
+      - -Dsonar.host.url=http://host.docker.internal:9000
+      - -Dsonar.qualitygate.wait=true

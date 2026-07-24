@@ -1,5 +1,4 @@
-# PROD override: hardened. Ports bound behind the ingress/LB only; secrets from
-# the environment (injected by Terraform/Digital.ai Deploy, never committed).
+# PROD override: hardened runtime (secrets injected by Jenkins/Argo, never committed).
 services:
   postgres:
     restart: always
@@ -25,6 +24,7 @@ services:
     restart: always
   prometheus:
     restart: always
-  # No SonarQube / JMeter in the production runtime.
   sonarqube:
+    profiles: ["disabled"]
+  sonarqube-exporter:
     profiles: ["disabled"]

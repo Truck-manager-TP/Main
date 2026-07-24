@@ -1,0 +1,30 @@
+groups:
+  - name: sonarqube-quality
+    rules:
+      - alert: SonarQubeQualityGateFailed
+        expr: sonarqube_quality_gate_status{project="tptruck-fleet"} == 0
+        for: 0m
+        labels:
+          severity: critical
+          team: platform
+          source: sonarqube
+          jira: "true"
+          project: tptruck-fleet
+        annotations:
+          summary: "SonarQube quality gate FAILED for {{ $labels.project }}"
+          description: "TP-Truck Gate failed. Review SonarQube dashboard. CI/release is blocked."
+          dashboard_url: "http://sonarqube:9000/dashboard?id={{ $labels.project }}"
+
+      - alert: SonarQubeCriticalBugs
+        expr: sonarqube_bugs{project="tptruck-fleet",severity="critical"} > 0
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+          source: sonarqube
+          jira: "true"
+          project: tptruck-fleet
+        annotations:
+          summary: "Critical bugs detected in {{ $labels.project }}"
+          description: "{{ $value }} critical bug(s) open in SonarQube."
+          dashboard_url: "http://sonarqube:9000/project/issues?id={{ $labels.project }}&types=BUG&severities=CRITICAL"
