@@ -138,7 +138,7 @@ export default function FleetTrackingMap({ trucks, selectedId, onSelect, product
     <div className="relative w-full h-full min-h-[420px] rounded-2xl overflow-hidden">
       <div ref={containerRef} className="absolute inset-0 z-0" />
       <div className="absolute top-3 left-3 z-[400] bg-white/90 backdrop-blur rounded-lg px-3 py-1.5 text-xs text-muted-foreground border border-border shadow-sm">
-        Carte OpenStreetMap · positions fictives
+        Carte OpenStreetMap · itinéraires réels (PostgreSQL)
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import FleetTrackingMap from "./components/FleetTrackingMap";
-import { fetchTrucks } from "./api";
+import { fetchTrucks, fetchRouteMarkers, fetchRoutesList } from "./api";
 import {
   Truck, MapPin, Users, BarChart3, Bell, ChevronRight,
   TrendingUp, AlertTriangle, Clock, Fuel, Wrench,
@@ -983,6 +983,13 @@ function FleetTrackingSection() {
   const counts = Object.fromEntries(
     productTypes.map(type => [type, delivering.filter(t => t.productType === type).length])
   ) as Record<(typeof productTypes)[number], number>;
+  const [routeMap, setRouteMap] = useState<any[] | null>(null);
+  useEffect(() => {
+    let alive = true;
+    fetchRouteMarkers().then(m => { if (alive && m.length) setRouteMap(m); }).catch(() => {});
+    return () => { alive = false; };
+  }, []);
+  const mapTrucks = routeMap ?? filtered;   // vraies routes de la base, sinon repli mock
 
   return (
     <div className="space-y-5">
@@ -995,6 +1002,7 @@ function FleetTrackingSection() {
             {filtered.length} camion{filtered.length > 1 ? "s" : ""} en livraison
             {productFilter !== "all" ? ` · ${productFilter}` : ` · ${delivering.length} livraisons actives`}
           </p>
+          {routeMap && <span className="inline-block text-xs font-bold mt-1" style={{ color: "#10B981" }}>● Itinéraires en direct de PostgreSQL</span>}
         </div>
         <button
           onClick={() => setProductFilter("all")}
@@ -1076,7 +1084,7 @@ function FleetTrackingSection() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
         <div className="xl:col-span-2 bg-card rounded-2xl border border-border overflow-hidden" style={{ height: 420 }}>
           <FleetTrackingMap
-            trucks={filtered}
+            trucks={mapTrucks}
             selectedId={sel?.id ?? null}
             onSelect={t => setSel(t)}
             productMeta={productClassificationMeta}
@@ -1639,6 +1647,12 @@ function DashboardSection() {
 
 function RoutesSection() {
   const [tab,setTab]=useState<"national"|"international">("national");
+  const [live,setLive]=useState<any[]|null>(null);
+  useEffect(()=>{
+    let a=true;
+    fetchRoutesList().then(r=>{ if(a&&r.length) setLive(r); }).catch(()=>{});
+    return ()=>{ a=false; };
+  },[]);
   const nat=[
     {id:"RT-N01",from:"Casablanca",to:"Tanger",    truck:"TRK-001",driver:"Hassan Benali", dist:"340 km",status:"en_route",  eta:"10:15",prog:72},
     {id:"RT-N02",from:"Rabat",     to:"Fès",       truck:"TRK-002",driver:"Mohamed Oulad", dist:"200 km",status:"livraison", eta:"10:20",prog:45},
@@ -1648,10 +1662,11 @@ function RoutesSection() {
     {id:"RT-I01",from:"Casablanca",to:"Paris (France)",       truck:"TRK-007",driver:"Youssef Darif",   dist:"2340 km",status:"en_route",  eta:"Mer 14:00",prog:31},
     {id:"RT-I02",from:"Tanger",    to:"Barcelone (Espagne)",  truck:"TRK-008",driver:"Ibrahim Chaoui",  dist:"1100 km",status:"livraison", eta:"Mer 12:00",prog:88},
   ];
-  const routes=tab==="national"?nat:intl;
+  const routes=live ? live.filter(r=>r.scope===tab) : (tab==="national"?nat:intl);
   return (
     <div className="space-y-5">
       <h1 className="text-xl font-bold text-foreground" style={{fontFamily:"'Plus Jakarta Sans',sans-serif"}}>Suivi d'itinéraire</h1>
+      {live && <span className="inline-block text-xs font-bold" style={{color:"#10B981"}}>● Itinéraires en direct de PostgreSQL</span>}
       <div className="flex gap-1 p-1 bg-muted rounded-lg w-fit">
         {(["national","international"] as const).map(t=>(
           <button key={t} onClick={()=>setTab(t)} className="px-4 py-2 text-sm font-semibold rounded-md transition-all"
