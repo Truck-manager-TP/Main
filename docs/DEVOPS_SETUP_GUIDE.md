@@ -78,6 +78,7 @@ See also: [DEVOPS_LIFECYCLE.md](./DEVOPS_LIFECYCLE.md) (detailed phase steps) an
 - Runs on PR and `main` push: Maven verify + SonarQube gate
 - On `main` success: triggers Jenkins CD job `tp-truck-cd`
 - On Sonar failure: creates Jira Bug via `jenkins/scripts/create-jira-bug.sh`
+- **Merged to `main`** (commit `bdb3789`) — CI should trigger on the next push to `main`
 
 ### Jenkins CD
 - `Jenkinsfile` with stages: Checkout → Build/Sonar → Docker push → Deploy DEV/UAT/PROD
@@ -131,7 +132,7 @@ docker compose -f docker-compose.sonar-scan.yml run --rm sonar-scan
 
 | # | Task | Tool | Where / how |
 |---|------|------|-------------|
-| 1 | **Open PR and merge to `main`** | GitHub | PR from `feature/KAN-33-github-actions` → verify Actions run |
+| 1 | **Verify GitHub Actions on `main`** | GitHub Actions | Actions tab → confirm **CI - Build, Test & Quality Gate** ran after merge |
 | 2 | **Add GitHub Actions secrets** | GitHub | Settings → Secrets: `SONAR_TOKEN`, `SONAR_HOST_URL`, Jira, Jenkins vars |
 | 3 | **Assign SonarQube project to TP-Truck Gate** | SonarQube | Quality Gates → Projects → `tptruck-fleet` |
 | 4 | **Jenkins credentials** | Jenkins | `sonar-token`, `ghcr-token`, `argocd-auth-token`, etc. |
@@ -166,7 +167,7 @@ docker compose -f docker-compose.sonar-scan.yml run --rm sonar-scan
 |--------|-------|--------|
 | KAN-24 | SonarQube pom + gate + local scan | Done locally; CI secrets pending |
 | KAN-25 | Grafana dashboards | Files in repo; stack verification pending |
-| KAN-33 | GitHub Actions CI | Workflow in repo; PR + secrets pending |
+| KAN-33 | GitHub Actions CI | Workflow on `main`; secrets + first green run pending |
 | KAN-34–36 | Jenkins / Argo CD | Jenkins job created; credentials + sync pending |
 | KAN-37–39 | ServiceNow / E2E pipeline | Not started |
 | KAN-50–60 | Grafana subtasks | See `agile/jira/grafana-backlog-import.csv` |
